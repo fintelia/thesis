@@ -7,7 +7,7 @@ all: main
 
 clean:
 	rm -rf latex.out version.tex fig/*.svg fig/*.pdf \
-	*.aux *.log *.blg *.bbl *.ent *.out *.gz *fls *.fdb_latexmk paper.pdf
+	*.aux *.log *.blg *.bbl *.ent *.out *.gz *fls *.fdb_latexmk proposal.pdf
 
 .PHONY: all clean
 

@@ -1,0 +1,248 @@
+@inproceedings{sgxcache,
+  author    = {Michael Schwarz and
+               Samuel Weiser and
+               Daniel Gruss and
+               Cl{\'{e}}mentine Maurice and
+               Stefan Mangard},
+  title     = {Malware Guard Extension: Using {SGX} to Conceal Cache Attacks},
+  booktitle = {Detection of Intrusions and Malware, and Vulnerability Assessment
+               - 14th International Conference, {DIMVA} 2017, Bonn, Germany, July
+               6-7, 2017, Proceedings},
+  pages     = {3--24},
+  year      = {2017},
+}
+
+@inproceedings{borg,
+  author    = {Abhishek Verma and
+               Luis Pedrosa and
+               Madhukar Korupolu and
+               David Oppenheimer and
+               Eric Tune and
+               John Wilkes},
+  title     = {Large-scale cluster management at {Google} with {Borg}},
+  crossref = {EUROSYS15},
+  pages     = {18:1--18:17},
+}
+
+@inproceedings{cpi2,
+  author    = {Xiao Zhang and
+               Eric Tune and
+               Robert Hagmann and
+               Rohit Jnagal and
+               Vrigo Gokhale and
+               John Wilkes},
+  title     = {{CPI\({}^{\mbox{2}}\)}: {CPU} performance isolation for shared compute
+               clusters},
+  crossref = {EUROSYS13},
+  pages     = {379--391},
+}
+
+@book{datacenterbook,
+  author    = {Luiz Andr{\'{e}} Barroso and
+               Jimmy Clidaras and
+               Urs H{\"{o}}lzle},
+  title     = {The Datacenter as a Computer: An Introduction to the Design of Warehouse-Scale
+               Machines, Second Edition},
+  series    = {Synthesis Lectures on Computer Architecture},
+  publisher = {Morgan {\&} Claypool Publishers},
+  year      = {2013},
+}
+
+@inproceedings{dedup,
+  author    = {Kuniyasu Suzaki and
+               Kengo Iijima and
+               Toshiki Yagi and
+               Cyrille Artho},
+  title     = {Memory deduplication as a threat to the guest {OS}},
+  booktitle = {Proceedings of the Fourth European Workshop on System Security, EUROSEC'11,
+               April 10, 2011, Salzburg, Austria},
+  pages     = {1},
+  year      = {2011},
+}
+
+@inproceedings{aslr,
+  author    = {Ben Gras and
+               Kaveh Razavi and
+               Erik Bosman and
+               Herbert Bos and
+               Cristiano Giuffrida},
+  title     = {{ASLR} on the Line: Practical Cache Attacks on the {MMU}},
+  crossref = {NDSS17},
+}
+
+@misc{apple_support,
+  author = {{Apple, Inc.}},
+  title={Additional mitigations for speculative execution vulnerabilities in {Intel} {CPUs}},
+  howpublished={\url{https://support.apple.com/en-us/HT210107}},
+  year = 2019,
+  month = aug,
+}
+
+@misc{microsoft_support,
+  author = {{Microsoft Corporation}},
+  title={{Windows} guidance to protect against speculative execution side-channel vulnerabilities},
+  howpublished={\url{https://support.microsoft.com/en-us/help/4457951/}},
+  year = 2019,
+  month = nov,
+}
+
+@electronic{ransomware, title={How to Protect Your Networks from Ransomware},
+url={https://www.justice.gov/criminal-ccips/file/872771/download},
+Lastchecked={Jul 31th, 2019}}
+
+@electronic{ohio, title={{{Ohio Provider Pays \$75K Ransom After Serious Hack on IT System}}},
+url={https://healthitsecurity.com/news/ohio-provider-pays-75k-ransom-after-serious-hack-on-it-system},
+Lastchecked={Jul 31th, 2019}}
+
+@electronic{project_zero, title={Reading privileged memory with a
+side-channel},
+url={https://googleprojectzero.blogspot.com/2018/01/reading-privileged-memory-with-side.html},
+Lastchecked={Jul 31th, 2019}}
+
+@inproceedings{primeprobe,
+  author    = {Fangfei Liu and
+               Yuval Yarom and
+               Qian Ge and
+               Gernot Heiser and
+               Ruby B. Lee},
+  title     = {Last-Level Cache Side-Channel Attacks are Practical},
+  crossref = {IEEESP15},
+  pages     = {605--622},
+}
+
+@electronic{phoronix, title={The Current Spectre / Meltdown Mitigation Overhead Benchmarks On Linux 5.0},
+url={https://www.phoronix.com/scan.php?page=article&item=linux50-spectre-meltdown},
+Lastchecked={Jul 31th, 2019}}
+
+@inproceedings{lebench,
+author = {Ren, Xiang (Jenny) and Rodrigues, Kirk and Chen, Luyuan and Vega, Camilo and Stumm, Michael and Yuan, Ding},
+title = {An Analysis of Performance Evolution of {Linux}'s Core Operations},
+crossref = {SOSP19},
+pages = {554--569},
+}
+
+@misc{amd:speculation,
+  author = {{Advanced Micro Devices, Inc.}},
+  title = {Speculation Behavior in {AMD} Micro-architectures},
+  year = 2019,
+  howpublished = {\url{https://www.amd.com/system/files/documents/security-whitepaper.pdf}},
+}
+
+@misc{intel:meltdown,
+  author = {{Intel, Inc.}},
+  title = {Software Guidance: Rogue Data Cache Load},
+  year = 2018,
+  howpublished = {\url{https://software.intel.com/security-software-guidance/software-guidance/rogue-data-cache-load}},
+}
+
+@misc{intel:l1tf,
+  author = {{Intel, Inc.}},
+  title = {Software Guidance: {L1} Terminal Fault},
+  year = 2018,
+  howpublished = {\url{https://software.intel.com/security-software-guidance/software-guidance/l1-terminal-fault}},
+}
+
+@ARTICLE{hill:survey,
+  author={Mark D. {Hill} and Jon {Masters} and Parthasarathy {Ranganathan} and Paul {Turner} and John L. {Hennessy}},
+  journal={IEEE Micro}, 
+  title={On the {Spectre} and {Meltdown} Processor Security Vulnerabilities}, 
+  year={2019},
+  volume={39},
+  number={2},
+  pages={9-19},
+}
+
+@misc{linux:kpti,
+  author = {{Linux Kernel Maintainers.}},
+  title = {Page Table Isolation},
+  year = 2020,
+  howpublished = {\url{https://www.kernel.org/doc/Documentation/x86/pti.txt}},
+}
+
+@misc{linux:vuln,
+  author = {{Linux Kernel Maintainers.}},
+  title = {Hardware vulnerabilities},
+  year = 2020,
+  howpublished = {\url{https://www.kernel.org/doc/Documentation/admin-guide/hw-vuln/}},
+}
+
+@misc{lwn:alternative,
+  author = "Jonathan Corbet",
+  title = {{SMP} alternatives},
+  year = 2005,
+  howpublished = {\url{https://lwn.net/Articles/164121/}},
+}
+
+@article{sok:transient,
+  author    = {Claudio Canella and Jo Van Bulck and Michael Schwarz and Moritz Lipp and Benjamin von Berg and Philipp Ortner and Frank Piessens and Dmitry Evtyushkin and Daniel Gruss},
+  title     = {A Systematic Evaluation of Transient Execution Attacks and Defenses},
+  journal   = {CoRR},
+  volume    = {abs/1811.05441},
+  year      = {2018},
+  url       = {\url{http://arxiv.org/abs/1811.05441}},
+}
+
+@InProceedings{liedtke:sosp95,
+     author =       "Jochen Liedtke",
+     title =        "On micro-kernel construction",
+     crossref = {SOSP95},
+}
+
+
+@misc{phoronix:5.8,
+  author = {Michael Larabel},
+  title = {Linux 5.8 Set To Optionally Flush The {L1d} Cache On Context Switch To Increase Security},
+  year = 2020,
+  month = may,
+  howpublished = {\url{https://www.phoronix.com/scan.php?page=news_item&px=L1d-Cache-Flushing-Queued}},
+}
+
+@misc{intel:retpoline,
+  author = {{Intel, Inc.}},
+  title = {Deep Dive: Retpoline: A Branch Target Injection Mitigation},
+  howpublished = {\url{https://software.intel.com/security-software-guidance/deep-dives/deep-dive-retpoline-branch-target-injection-mitigation}}
+}
+
+@misc{sgaxe,
+title={{SGAxe}: How {SGX} Fails in Practice},
+author={van Schaik, Stephan and Kwong, Andrew and Genkin, Daniel and Yarom, Yuval},
+howpublished = {\url{https://sgaxe.com}},
+year={2020},
+}
+
+@misc{lwn:beyond-kpti,
+  author = {Jonathan Corbet},
+  title = {Generalizing address-space isolation},
+  year = 2019,
+  month = nov,
+  howpublished = {\url{https://lwn.net/Articles/803823/}},
+}
+
+@ARTICLE{OISA,
+  author={J. {Yu} and L. {Hsiung} and M. E. {Hajj} and C. W. {Fletcher}},
+  journal={IEEE Micro}, 
+  title={Creating Foundations for Secure Microarchitectures With Data-Oblivious ISA Extensions}, 
+  year={2020},
+  volume={40},
+  number={3},
+  pages={99-107},
+}
+
+@article{ConTExT,
+  author    = {Michael Schwarz and
+               Robert Schilling and
+               Florian Kargl and
+               Moritz Lipp and
+               Claudio Canella and
+               Daniel Gruss},
+  title     = {ConTExT: Leakage-Free Transient Execution},
+  journal   = {CoRR},
+  volume    = {abs/1905.09100},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1905.09100},
+  archivePrefix = {arXiv},
+  eprint    = {1905.09100},
+  timestamp = {Wed, 29 May 2019 11:27:50 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1905-09100.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
