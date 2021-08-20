@@ -54,7 +54,7 @@ This enables the attacker to later time how long it takes to access each cache e
 \subsection*{Other Attacks}
 There are a whole range of other transient execution attacks which can be divided into three categories~\cite{hill:survey}.
 Spectre type attacks like the one described above rely on processor misprediction to incompletely roll back executed instructions.
-While Meltdown type attacks achieve the same effect using a trapping operation to trigger the roll back.
+Meanwhile Meltdown type attacks achieve the same effect using a trapping operation to trigger the roll back.
 Finally, Microarchitural Data Sampling exploits the processors forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
 
 \section*{Overview of Existing Solutions}
@@ -70,6 +70,16 @@ Meanwhile, operating system makers and other software vendors deployed new versi
 Software and microcode approaches to preventing transient execution attacks are severely constrained compared to what is possible by modifying CPU designs themselves.
 For some attacks, straightforward architectural changes completely eliminate the vulnerability with almost no performance overhead and are already deployed in commercially available CPUs.
 For other attacks, performant hardware mitigations for others remain an active area of research~\cite{OISA, ConTExT}.
+
+\section*{Contributions}
+This work has two major contributions
+\begin{itemize}
+\item For processors which currently require expensive software mitigations, we present Ward, an operating system architecture which achieves similar security guarantees but incurs substantially lower overhead.
+Ward particularly identifies KPTI~\cite{linux:kpti} (Linux's chosen defense against Meltdown) as a key source of overhead.
+
+\item Across successive generations of processors designed both before and after the publication of these attacks, we quantify the performance cost of hardware mitigations and reverse engineer microarchitectural changes made in response to the attacks.
+The insights from this analysis indicate that the most expensive mitigations are no longer required, and that while new attacks continue to be discovered, the overall performance impact of these new attacks has so far been significantly less severe.
+\end{itemize}
 
 \section*{Ward}
 In this work we propose and evaluate a novel operating system architecture which is resilient to transient execution attacks, yet does not require the expensive software mitigations that existing operating systems deploy. 
