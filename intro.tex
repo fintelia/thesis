@@ -1,6 +1,6 @@
 \section*{Motivation}
 Side channel attacks leak information between isolation domains outside of the normal information flow of a system.
-Several years ago a new class of side channel attacks was discovered impacting CPUs from all major vendors.
+Several years ago a new class of side channel attacks was discovered impacting CPUs from all major vendors~\cite{lipp:meltdown, kocher:spectre}.
 These attacks -- termed transient execution attacks -- exploit details of how modern processors use speculative execution to run more quickly. 
 
 Transient execution attacks represent a challenge for operating system developers because a key security responsibility for operating systems is to maintain isolation.
@@ -25,6 +25,16 @@ In general when reverting transiently executed instructions, their microarchitur
 Such microarchitural effects are the core of transient execution attacks.
 
 \subsection*{Example Attack}
+\begin{figure}[h]
+\begin{lstlisting}[language=C, style=codeStyle]
+if (index < array_size) {
+    int v = array2[array1[index] * 256];
+    ...
+}
+\end{lstlisting}
+\caption{Example code for a Spectre V1 attack}
+\label{fig:spectre-code}
+\end{figure}
 Spectre V1 was one of the earliest attacks discovered.
 It leaks information between different processes, between a process and the operating system kernel, or between a sandbox and the code running within.
 This attack relies on a specific sequence of instructions (a ``gadget'') to be located in the victim's code.
@@ -42,7 +52,7 @@ Eventually the branch misprediction will be discovered and rolled back but the c
 This enables the attacker to later time how long it takes to access each cache entry and infer which value must have been pulled in by the victim application.
 
 \subsection*{Other Attacks}
-There are a whole range of other transient execution attacks which can be divided into three categories\cite{TODO}.
+There are a whole range of other transient execution attacks which can be divided into three categories~\cite{hill:survey}.
 Spectre type attacks like the one described above rely on processor misprediction to incompletely roll back executed instructions.
 While Meltdown type attacks achieve the same effect using a trapping operation to trigger the roll back.
 Finally, Microarchitural Data Sampling exploits the processors forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
@@ -53,13 +63,13 @@ As the embargo period wound down on the original Meltdown and Spectre attacks, o
 The patches came at a significant performance cost, as was widely commented on at the time. 
 
 These fixes took two forms.
-Hardware vendors released microcode patches for existing processors which modified behavior and added some new functionality to control speculative execution.
-Meanwhile, operating system makers and other software vendors deployed new versions which blocked the attacks via a combination of software only techniques and leveraging the functionality added by microcode.
+Hardware vendors released microcode patches for existing processors which modified behavior and added some new functionality to control speculative execution~\cite{intel:l1tf}.
+Meanwhile, operating system makers and other software vendors deployed new versions which blocked the attacks via a combination of software only techniques~\cite{intel:retpoline, linux:kpti} and leveraging the functionality added by microcode~\cite{intel:l1tf}.
 
 \subsection*{Hardware Changes}
 Software and microcode approaches to preventing transient execution attacks are severely constrained compared to what is possible by modifying CPU designs themselves.
 For some attacks, straightforward architectural changes completely eliminate the vulnerability with almost no performance overhead and are already deployed in commercially available CPUs.
-For other attacks, performant hardware mitigations for others remain an active area of research.
+For other attacks, performant hardware mitigations for others remain an active area of research~\cite{OISA, ConTExT}.
 
 \section*{Ward}
 In this work we propose and evaluate a novel operating system architecture which is resilient to transient execution attacks, yet does not require the expensive software mitigations that existing operating systems deploy. 
