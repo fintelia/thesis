@@ -1,0 +1,85 @@
+\section*{Motivation}
+Side channel attacks leak information between isolation domains outside of the normal information flow of a system.
+Several years ago a new class of side channel attacks was discovered impacting CPUs from all major vendors.
+These attacks -- termed transient execution attacks -- exploit details of how modern processors use speculative execution to run more quickly. 
+
+Transient execution attacks represent a challenge for operating system developers because a key security responsibility for operating systems is to maintain isolation.
+In particular, multiple processes running on the same machine must not inadvertently leak information between one another.
+Production operating systems have deployed a range of software techniques devised to mitigate the impact of these attacks, but unfortunately they have significant tradeoffs.
+
+Many hundreds of millions of vulnerable computer processors are currently in use, so simply replacing them all isn’t by itself a viable solution.
+Worse still, computer architectural approaches to solve transient execution attacks remains an open area of research, except on the simplest of processors.
+
+Nonetheless, generations of processors designed after the discovery of transient execution attacks have improvements that make them inherently less susceptible to attack.
+It is desirable to understand how this was achieved yet little has been published on exactly what changes were made.
+
+\section*{Transient Execution Attacks}
+\subsection*{Speculative Execution}
+Speculative execution is an optimization used in the design of modern processors to drastically improve their performance, by enabling them to do useful work during times when they would otherwise be stalled waiting to load information from RAM.
+
+The way speculative execution works is that when the CPU reaches a conditional branch instruction that it doesn't yet know whether will be taken or not, it predicts the outcome based on prior executions of that same instruction and then continues running under the assumption that the guess was correct.
+Usually the outcome is that the branch was predicted correctly, and the speculatively executed instructions can be committed.
+
+When a branch is mispredicted the CPU rolls back the architecturally visible results of the instructions executed after the branch.
+In general when reverting transiently executed instructions, their microarchitural results -- like which inserting or evicting lines from the cache -- are not undone.
+Such microarchitural effects are the core of transient execution attacks.
+
+\subsection*{Example Attack}
+Spectre V1 was one of the earliest attacks discovered.
+It leaks information between different processes, between a process and the operating system kernel, or between a sandbox and the code running within.
+This attack relies on a specific sequence of instructions (a ``gadget'') to be located in the victim's code.
+The gadget consists of a bounds check followed by two array accesses as shown in Figure~\ref{fig:spectre-code}, where the index value can be controlled by the adversary.
+
+To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes which will train the CPU branch predictor that the branch is usually taken.
+Then, the attackers forces the array size to be evicted from the CPU cache and calls the gadget with an out of bounds array.
+
+When execution reaches the bounds check, the processor will initiate a load to read the array size.
+However before that load completes, the CPU will speculatively start executing the body of the if statement because the branch predictor has previously learned that the index is usually in bounds.
+The first array access will read past the end of the array into arbitrary memory and pull that value into a CPU register.
+The second array access then loads a specific cache line whose index will depend on the first read.
+
+Eventually the branch misprediction will be discovered and rolled back but the cache contents will not be.
+This enables the attacker to later time how long it takes to access each cache entry and infer which value must have been pulled in by the victim application.
+
+\subsection*{Other Attacks}
+There are a whole range of other transient execution attacks which can be divided into three categories\cite{TODO}.
+Spectre type attacks like the one described above rely on processor misprediction to incompletely roll back executed instructions.
+While Meltdown type attacks achieve the same effect using a trapping operation to trigger the roll back.
+Finally, Microarchitural Data Sampling exploits the processors forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
+
+\section*{Overview of Existing Solutions}
+\subsection*{Software Approaches}
+As the embargo period wound down on the original Meltdown and Spectre attacks, operating system vendors and processor makers hurriedly rolled out patches to mitigate these vulnerabilities.
+The patches came at a significant performance cost, as was widely commented on at the time. 
+
+These fixes took two forms.
+Hardware vendors released microcode patches for existing processors which modified behavior and added some new functionality to control speculative execution.
+Meanwhile, operating system makers and other software vendors deployed new versions which blocked the attacks via a combination of software only techniques and leveraging the functionality added by microcode.
+
+\subsection*{Hardware Changes}
+Software and microcode approaches to preventing transient execution attacks are severely constrained compared to what is possible by modifying CPU designs themselves.
+For some attacks, straightforward architectural changes completely eliminate the vulnerability with almost no performance overhead and are already deployed in commercially available CPUs.
+For other attacks, performant hardware mitigations for others remain an active area of research.
+
+\section*{Ward}
+In this work we propose and evaluate a novel operating system architecture which is resilient to transient execution attacks, yet does not require the expensive software mitigations that existing operating systems deploy. 
+
+In Ward, the operating system kernel is divided into multiple domains.
+The K-domain includes all information accessible to the operation system, while each process has its own associated Q-domain consisting only of the userspace memory and kernel space data structures related to that one process.
+At any given point in time the processor is either executing in userspace, in a Q-domain, or in the K-domain. 
+
+Notably when executing in a Q-domain, Ward is able to avoid many of the expensive software mitigations that would ordinarily be required by a conventional OS when running in kernel mode on processors vulnerable to Spectre and Meltdown.
+And since Ward is able to handle many system calls and traps entirely in the Q-domain, it can achieve considerably better performance on many workloads compared to conventional operating system designs.
+
+\section*{Evolution of Mitigation Cost}
+We also survey the cost of mitigations across multiple processor generations and across the two main vendors for x86 processors.
+This enables us to understand both which costs are specific only to CPUs from a particular vendor as well as see trends in how costs are changing over time.
+
+First, we run end-to-end benchmarks on each system measuring operating system and web-browser workloads.
+This is enough to derive some high level trends and get a sense for the cost of the configurable mitigations on each system.
+Unfortunately, our test systems vary on many dimensions unrelated to transient execution attacks (like clock speed and cache size) which limit what meaningful performance comparisons we can make using coarse benchmarks.
+
+The bulk of our work is a detailed breakdown of individual attacks where we can investigate precise cycle costs.
+For each attack, we attempt to measure execution time of the instruction or instruction sequence used to mitigate it on each of our impacted systems.
+Our experiments show substantial variations between processors in how long individual mitigations take, and demonstrate that some of the most costly are completed avoided on the newest CPUs. 
+The outcome of this investigation suggests that overheads to prevent transient execution attacks have significantly declined.

@@ -1,0 +1,53 @@
+\documentclass[letterpaper,12pt]{article}
+\PassOptionsToPackage{hyphens}{url}
+\usepackage[letterpaper, breaklinks, pdfborder={0 0 0}]{hyperref}
+\usepackage[square,comma,numbers,sort&compress]{natbib}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
+\renewcommand{\ttdefault}{pxtt}
+\usepackage{microtype}
+\usepackage{setspace}
+\input{glyphtounicode}
+\pdfgentounicode=1
+
+% to be able to draw some self-contained figs
+\usepackage{tikz}
+\usetikzlibrary{arrows,arrows.meta, shapes.geometric,decorations.pathreplacing,calc,positioning}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{xspace}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[letterpaper, total={6.5in, 8in}]{geometry}
+
+\pagestyle{empty}
+\doublespacing
+
+\begin{document}
+
+\date{\vspace{-\baselineskip}}
+
+% make title bold and 14 pt font (Latex default is non-bold, 16 pt)
+\title{\Large \bf
+  Thesis Proposal
+}
+
+\author{ {\rm Jonathan Behrens} \\ \textit{MIT} }
+
+\maketitle
+
+\input{intro.tex}
+
+\section*{Timeline}
+\begin{itemize}
+\item\textit{August 2019 - October 2020:} Design and implement Ward
+\item\textit{November 2020 - August 2021:} Measure speculation behavior on new processors
+\item\textit{August 2021 - October 2021:} End-to-end evaluation of web browser and OS mitigations
+\item\textit{November 2021 - January 2022:} Thesis writing
+\end{itemize}
+
+\bibliography{n-str,paper,n,n-conf}{}
+\bibliographystyle{plain}
+
+\end{document}
