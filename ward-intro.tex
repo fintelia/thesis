@@ -1,0 +1,155 @@
+\section*{Introduction}
+
+Over the last two years, transient execution has emerged as a
+powerful new side-channel attack technique.  Vulnerabilities have
+proliferated~\cite{sok:transient,hill:survey}, with examples now including Meltdown~\cite{lipp:meltdown},
+Spectre~\cite{kocher:spectre}, L1 Terminal Fault~\cite{bulck:foreshadow}, RIDL~\cite{schaik:ridl},
+Fallout~\cite{canella:fallout}, ZombieLoad~\cite{schwarz:zombieload},
+CrossTalk~\cite{ragab:crosstalk}, and SGAxe~\cite{sgaxe}.  In contrast
+with conventional timing-based side-channel attacks~\cite{kocher:timing},
+where the victim must access its data in a specific pattern in order
+to leak it, transient execution attacks are more serious because they
+often allow an attacker to precisely control which memory locations are
+leaked, including memory that might not be accessed on the committed
+execution path.  This is of particular concern to OS kernels, which have
+access to all of physical memory, and therefore could leak data from any
+process through transient execution bugs.  In a public cloud,
+where it is common for mutually distrustful tenants to share
+a single machine~\cite{borg, cpi2}, the threat of transient execution
+is especially concerning.
+
+A key challenge in addressing transient execution attacks lies in
+minimizing the performance overheads.  CPU and OS designers have
+implemented a range of mitigations to defeat transient execution
+attacks, including state flushing, selectively preventing speculative
+execution, and removing observation channels~\cite{sok:transient}.
+These mitigations impose performance overheads (see
+\autoref{s:motivation}): some of the mitigations must be applied at
+each privilege mode transition (e.g., system call entry and exit), and
+some must be applied to all running code (e.g., retpolines for all
+indirect jumps).  In some cases, they are so expensive that OS vendors
+have decided to leave them disabled by default~\cite{apple_support,
+  microsoft_support}.  Recent processor designs have also incorporated
+mitigations into hardware, which also reduces performance compared to
+earlier processor designs that do not perform such hardware
+mitigations.
+
+%Linux has considered offering
+%an option to flush the entire L1 cache on context switch, to protect
+%against future transient execution attacks~\cite{linux:vuln,phoronix:5.8}.
+
+% For example,
+% microarchitectural data sampling (MDS) vulnurabilities like RIDL and
+% Fallout cannot be fully mitigated without turning off hyperthreading,
+% reducing overall CPU performance by around 33\%.
+
+To address the above challenge, this paper proposes a new
+hardware/software contract, called the \emph{unmapped speculation
+contract}, or \contract{} for short.  \contract{} allows the OS kernel
+to significantly reduce the overhead of mitigating a particular subset
+of transient execution attacks---namely, those that leak arbitrary
+memory contents.  The \contract{} says that physical memory that is
+unmapped (i.e., physical memory that has no virtual address) cannot
+be accessed speculatively.  The
+benefit of \contract is two-fold.  From the OS designer perspective,
+it provides bounds on what data can be leaked through transient execution,
+and, as we show in the rest of this paper, can significantly reduce the
+cost of mitigations.  From the hardware designer perspective, \contract
+allows the CPU to keep many of the current speculative execution
+optimizations and their associated performance benefits.  Most
+processor architectures already adhere to \contract; AMD
+states that ``AMD processors are designed to not speculate into memory
+that is not valid in the current virtual address memory range defined
+by the software defined page tables''~\cite[pg. 2]{amd:speculation},
+and Intel issued hardware and microcode fixes for bugs that violate
+\contract~\cite{intel:meltdown, intel:l1tf}.
+
+To demonstrate the benefits of the unmapped speculation contract,
+this paper presents \sys{}, a novel kernel architecture that uses
+selective kernel memory mapping to avoid the costs of transient execution
+mitigations.  \sys{} maintains separate kernel memory mappings for each
+process, and ensures that the memory mapped in the kernel of a process
+does not contain any data that must be kept secret from that process.
+As a result, privilege mode switches (e.g., system call entry and exit)
+no longer need to employ expensive mitigations, since there are no
+secrets that could be leaked by transient execution.  When the \sys{}
+kernel must perform operations that require access to unmapped parts
+of kernel memory, such as opening a shared file or context-switching
+between processes, it explicitly changes kernel memory mappings, and
+invokes the same mitigation techniques used by the Linux kernel today.
+
+A key challenge in the \sys design lies in re-architecting the kernel
+and its data structures to allow for per-process views of the
+kernel address space.  For example, a typical \texttt{proc} structure in
+the kernel contains sensitive fields, such as the saved registers of that
+process, which should not be leaked to other processes.  At the same time,
+every process must be able to invoke the scheduler, which in turn may
+need to traverse the list of \texttt{proc} structures on the run queue.
+This paper presents several techniques to partition the kernel:
+transparent switching of kernel address spaces when accessing sensitive
+pages through page faults; using temporary mappings to access unmapped
+physical pages; splitting data structures into public and private
+parts; etc.
+
+To evaluate the \sys design, we applied it to the sv6 research
+kernel~\cite{clements:sc} running on x86 processors.  The sv6 kernel
+is a monolithic OS kernel written in C/C++, providing a POSIX
+interface similar to (but far less sophisticated than) Linux.  The
+simplicity of sv6 allowed us to quickly experiment with and iterate on
+\sys's design, since some aspects of \sys's design require global
+changes to the entire kernel.  Since sv6 is a monolithic kernel,
+our prototype was able to tackle hard problems brought up by kernel
+services such as a file system and a POSIX virtual memory system.
+
+We evaluate the performance of our \sys prototype using
+\bench~\cite{lebench}, which represents the most important system calls
+for a range of application workloads: Spark, Redis, PostgreSQL,
+Chromium, and building the Linux kernel.  \bench allows us to precisely
+measure the impact of mitigations on system calls that matter
+for applications.  The most recent Intel CPUs (such as Cascade Lake)
+include hardware mitigations that cannot be fully disabled; however, some of
+these mitigations are not needed in \sys.  To avoid the performance
+overhead of such unnecessary mitigations, we run experiments on
+the previous generation of Intel CPUs (Skylake).
+%\autoref{s:motivation} discusses these hardware mitigation overheads in
+%more detail.
+
+\sys can run the \bench microbenchmarks with small performance
+overheads compared to a kernel without mitigations.  For 18 out of
+the 30 \bench microbenchmarks, \sys's performance is within 5\% of the
+benchmark's performance without any mitigations (but at the cost of some
+extra memory overhead).  In the worst case, the overhead is 4.3$\times$
+(context switching between processes, where mitigations are unavoidable).
+In contrast, standard mitigations incur a median overhead of 19\%, and
+a worst case of nearly 7$\times$.  To confirm that \bench results translate
+into application performance improvements, we measured the performance
+of \texttt{git status}, which incurs 11.2\% overhead in \sys, compared
+to 24.6\% with standard mitigations.
+
+%We also report the results of
+%a qualitative analysis of known transient execution vulnerabilities,
+%which demonstrates that \sys's use of the unmapped speculation contract
+%is able to handle all of them on recent x86 hardware and microcode.
+
+%% The performance and security results for the \sys prototype suggest that
+%% the \sys approach is a promising one for mitigating the performance overheads
+%% of transient execution vulnerabilities.  \sys's design highlights a
+%% number of important lessons in re-architecting the kernel to partition
+%% the kernel memory across per-process kernel address spaces, which is
+%% needed to take advantage of the unmapped speculation contract.  We hope
+%% that these lessons will be valuable in re-architecting production kernels,
+%% such as Linux, to achieve similar performance gains on real applications.
+
+One of the limitations of \contract{} is that it does not cover all
+possible transient execution attacks.  In particular, attacks where
+the sensitive information is already present in the architectural or
+microarchitectural state of the CPU are not covered by \contract{}.
+For instance, the Spectre v3a attack can leak the sensitive contents of
+a system register (MSR), instead of leaking sensitive data from memory.
+\contract{} does not cover sensitive data that is stored outside of
+memory, and \sys applies other mitigations (e.g., as in Linux) to address
+those attacks.
+
+%% Another limitation of our evaluation is that we cannot
+%% selectively control hardware mitigations in the most recent Intel CPUs,
+%% which forces us to use an older processor design for most experiments.

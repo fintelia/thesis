@@ -7,7 +7,7 @@ all: main
 
 clean:
 	rm -rf latex.out version.tex fig/*.svg fig/*.pdf \
-	*.aux *.log *.blg *.bbl *.ent *.out *.gz *fls *.fdb_latexmk proposal.pdf
+	*.aux *.log *.blg *.bbl *.ent *.out *.gz *fls *.fdb_latexmk proposal.pdf thesis.pdf
 
 .PHONY: all clean
 
@@ -34,7 +34,7 @@ checkversion: version.sh
 # version is actually changed.
 .NOTPARALLEL: main
 .PHONY: main
-main: checkversion proposal.pdf
+main: checkversion proposal.pdf thesis.pdf
 
 proposal.pdf: proposal.tex $(wildcard *.tex)
 	$(LATEXRUN) -W no-all $<

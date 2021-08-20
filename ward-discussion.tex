@@ -1,0 +1,61 @@
+\section*{Discussion}
+\label{s:discussion}
+
+\paragraph{Future vulnerabilities.}
+
+It is likely that there are further transient
+execution attacks either under embargo or yet to be discovered. Based on trends
+in the existing attacks, we believe that \sys should be well positioned to
+address them: so far, mitigations developed for Linux have been suitable to
+directly copy into \sys. Since many need to run only at K domain entry/exit
+instead of every user-kernel boundary crossing, the same defenses in \sys
+might be cheaper to apply than they would be for Linux.
+
+\paragraph{Linux.}
+
+%% The results in \autoref{s:eval} shows that Ward's design can avoid
+%% incurring the mitigation overhead for important system calls by executing
+%% them in the Q domain without mitigation.  Although the evaluation involves
+%% a research kernel with less features than a production kernel like
+%% Linux,
+
+We are optimistic that Ward's techniques could also benefit monolithic
+production kernels for two reasons.
+First, \sys and Linux are in the same ballpark in terms of system call
+performance on \bench.  Out of the 30 microbenchmarks, \sys is faster than
+Linux on 18 of them, and slower on 12.
+%% Although the kernel designs are different in some
+%% respects (and \sys is quite a bit simpler than Linux), this suggests
+%% that the relative costs of mitigations on \sys are a reasonable proxy
+%% for that on Linux.
+Second, as shown in \autoref{fig:linuxslowdown} (\autoref{s:motivation})
+Linux incurs a significant overhead for mitigations on \bench and that
+overhead is in line with the overhead that \sys's Linux-style mitigations
+incur on \bench (see
+\autoref{fig:slowdown}).  Some systems calls experience more overhead in
+\sys, because they implement less functionality (e.g., \texttt{getpid}),
+but the corresponding calls in Linux also incur significant overhead.
+Some systems calls in \sys have less overhead than Linux, because they are
+not as efficient; for example, big and huge \texttt{mmap} in \sys requires
+an update of its radix-tree VM data structures~\cite{clements:radixvm},
+while Linux just inserts the new region into a list. Linux may see a
+bigger pay for those system calls with \sys's design than \sys.
+
+A question is how much effort is required to incorporate
+\sys's techniques into a production kernel such as Linux.
+%% To shed some
+%% light on this question, we have started to modify the Linux kernel
+%% to incorporate \sys's ideas.
+Our preliminary efforts have proven
+encouraging: we found that we could leverage existing infrastructure
+for KPTI to maintain Q domain and K domain page tables.  We implemented
+a \texttt{switch\_world} function in Linux, which switches to the K
+domain and copies the Q stack to the K stack.  We modified the Linux
+page-fault handler to call this function when it encounters a page
+fault while running with the Q page table. This allows the Linux kernel
+to run as normally with a transparent world switch on each system call.
+We refactored the \texttt{struct task\_struct} into a Q-private and secret
+part, allowing the \texttt{gettid} system call to run completely in the
+Q domain.  This gives us some indication that the basic approach of \sys
+could be made to work in Linux, although an open question is how to best
+re-design the data structures in the Linux kernel to fit \sys's design.

@@ -1,0 +1,338 @@
+\section*{Goal and threat model}
+
+\sys's goal is to reduce the performance cost of mitigations for transient
+execution attacks.  In principle, \sys's techniques can reduce not only
+the cost of software mitigations, but also allow processor designers
+to avoid costly mitigations in hardware.  Practically, however, it is
+difficult for us to disable hardware mitigations in the newest processors.
+%% they appear to have significant performance costs, as shown in the
+%% previous section.
+Therefore, this paper focuses on reducing the overhead
+of software mitigations, and experimentally measures their effect on the
+previous generation of CPUs, where we can avoid mitigations altogether.
+We hope that \sys's design can allow processor designers to regain some
+of the absolute performance lost due to hardware mitigation costs.
+
+Our threat model targets scenarios where the adversary
+and the victim are both running code on the same computer.  This might
+arise either in a server setting, where both are running on a cloud
+computing platform, or in a client device, where the adversary code is
+a malicious application or web site.
+
+Canella et al.~\cite{sok:transient} discuss transient execution attacks
+in detail, but the salient points of the attack boil down to four steps.
+First, the processor speculatively executes some code, which accesses
+sensitive data that the victim wants to keep secret.  Second, during the
+speculative execution, the processor updates microarchitectural state
+in a way that depends on the sensitive data (e.g., bringing in cache
+lines into a shared L3 cache whose addresses depend on the sensitive
+data).  Third, the processor aborts the speculative execution, but does
+not fully roll back all of its side effects (e.g., changes to the L3
+cache), because doing so would be prohibitively expensive in hardware.
+Fourth, the adversary observes these side effects (e.g., using timing
+measurements), which allows the adversary to infer the sensitive data.
+
+What makes transient execution attacks challenging to mitigate in an
+OS kernel is a combination of two factors.  The first is that an
+adversary can trigger an OS kernel to speculatively execute code that
+leads to leakage of sensitive data.  Even though the adversary cannot
+inject their own code to execute in the kernel, the adversary can often
+have significant influence on what existing kernel code gets executed in
+speculative execution, by specifying particular system call arguments or
+setting up micro-architectural CPU state such as the branch predictor.
+The second factor is that an OS kernel has access to all of the state
+on the computer.  This means that an adversary running in one process
+can trick the kernel into leaking state from any other process on the
+same computer.
+
+Current OS kernel designs, such as Linux, have two approaches for
+mitigating transient execution attacks.  The first approach is to make
+sure that the CPU does not speculatively execute any code that could
+end up accessing sensitive data.  This approach includes techniques such
+as retpolines and other speculation barriers.  The second approach is to
+make sure that sensitive data is flushed from microarchitectural state,
+such as flushing CPU caches and buffers when returning from a system
+call or when context-switching between processes.  Both incur significant
+performance overheads.
+
+Transient execution attacks can leak data across many protection domain
+boundaries, such as leaking secrets from the kernel to an adversary's
+process, or leaking secrets from one process to a different process,
+or even leaking secrets within a single process that implements its
+own internal protection domains.  Much like in the Linux kernel, the
+focus of \sys is on preventing leakage between processes, as well as
+preventing leakage from the kernel to a process.  \sys's approach to
+preventing cross-process leakage is the same as Linux (flushing state),
+but \sys has a novel approach for efficiently preventing kernel-to-process
+leakage of memory contents, as we describe in the next section.
+
+Although \sys addresses all known transient execution attacks, the focus
+of this paper is on attacks that allow the adversary to leak the contents
+of arbitrary memory, which is especially important in an OS kernel.
+\sys handles other transient execution attacks, such as leaking the
+contents of sensitive data already present in the CPU (e.g., x86 MSRs),
+in the same way as Linux does.
+
+Attacks that do not leverage transient execution to leak data are also
+out of scope for this paper, since they are orthogonal to the key
+challenge of transient execution leakage.  In particular, we do not
+consider attacks that leverage physical side channels (such
+as Rowhammer or RAMbleed), cache side channels (such as cache timing
+attacks), power side channels, etc.
+
+
+\section*{Approach: Unmapped speculation contract}
+
+\sys's design for mitigating transient execution attacks relies
+on page tables.  Specifically, if a page of physical
+memory is not referenced by any entry in the current page table or
+TLB, speculative execution cannot access any sensitive data stored in
+that page, because the page doesn't have a virtual address to access
+it by.
+
+% Processors typically do
+% not speculate on the physical address bits in page table entries, and as a result, the
+% lack of a page table entry serves as a barrier to speculative execution.
+
+A contribution of this paper lies in articulating a hardware/software
+contract---which we call the \emph{unmapped speculation contract}---that
+captures the above intuition.  The contract aims to provide a strong
+foundation for keeping data confidential, which is typically stated as
+non-interference.  Non-interference can be thought of by considering
+two system states, $s$ and $s'$, that differ only in sensitive data,
+which should not be observable by an adversary.  A system ensures
+non-interference if an adversary cannot observe any differences in how
+the system executes starting from either $s$ or $s'$.
+
+\paragraph{Single-core USC.} To formally state the unmapped speculation contract, we start with a
+single-core definition.  We use $A(\cdot)$ to refer to the state of
+the CPU, including all architectural and micro-architectural state,
+but excluding the contents of memory, and we use $M(\cdot)$ to refer
+to the contents of \emph{mapped} memory, i.e., the contents of every
+valid virtual address based on the committed page table in that state.
+We define the contract by considering a single clock cycle of the
+processor's execution, $\textrm{step}(\cdot)$, which includes any
+speculative execution done by the processor on that cycle, and require
+that unmapped pages cannot influence it:
+
+\begin{small}
+\begin{quote}
+$\forall s, s', \\
+  \textrm{if~} A(s) = A(s')
+  \textrm{~and~} M(s) = M(s'), \\
+  \textrm{then~with~} S := \textrm{step}(s)
+  \textrm{~and~} S' := \textrm{step}(s'), \\
+  \textrm{it~must~be~that~} A(S) = A(S')$
+\end{quote}
+\end{small}
+
+In plain English, the definition considers a pair of starting states $s$
+and $s'$ that should look the same, as far as speculative execution is
+concerned, because they have the same CPU state and the same contents
+of mapped pages.  They might, however, differ in the contents of some
+unmapped physical pages, which contain sensitive data that we would
+like to avoid leaking.  The definition then considers the state of
+the CPU at the next clock cycle ($S := \textrm{step}(s)$ and $S' :=
+\textrm{step}(s')$ respectively), and requires that the CPU architectural
+and micro-architectural state $A(\cdot)$, which the adversary might
+observe, continues to be the same in those two states.  As a result,
+the microarchitectural state could not have been influenced by any
+sensitive data not present in $M(s)$.
+
+If the OS kernel does not change the mapped memory in that clock cycle,
+$M(\cdot)$ remains the same, and the contract will continue to hold on
+the next cycle too.  However, if the OS kernel changes the mapped memory,
+the contract allows speculative execution from that point on to use the
+newly mapped memory, and the kernel will need to use other mitigations
+to defend against transient execution leaks from the newly mapped memory,
+if necessary.
+
+The contract specifies how the micro-architectural state, $A(\cdot)$,
+can evolve, but does not say anything about how $M(\cdot)$ can change.
+This is because the focus of the contract is on transient execution,
+which cannot affect the committed architectural state of the system; the
+contents of memory is described by the ISA, since it is architectural
+state.  In other words, changing the memory requires committing the
+execution of some instruction, at which point this is no longer a
+transient execution.
+
+\paragraph{Multi-core USC.} In a multi-core setting, the CPU state can be thought of as consisting
+of per-core state (e.g., registers, execution pipeline, and root
+page table pointer), which we denote with $A_i(\cdot)$ for core $i$,
+and the uncore state (e.g., the hardware random number
+generator~\cite{ragab:crosstalk}), which we denote with $U(\cdot)$,
+shared by all cores.  Similarly, since each core has its own page table,
+we index the mapped memory by the core $i$ whose page tables we are
+considering, $M_i(\cdot)$.  Finally, we consider the multi-core system
+executing a clock cycle on one core at a time, $\textrm{step}_i(\cdot)$.
+We assume that $\textrm{step}_i(\cdot)$ does not change $A_j(\cdot)$ for
+any $i\neq j$.
+With this notation, the multi-core contract says:
+
+\begin{small}
+\begin{quote}
+$\forall s, s', i, \\
+  \textrm{if~} A_i(s) = A_i(s');
+               U(s) = U(s');
+  \textrm{~and~} M_i(s) = M_i(s'), \\
+  \textrm{then~with~} S := \textrm{step}_i(s)
+  \textrm{~and~} S' := \textrm{step}_i(s'), \\
+  \textrm{it~must~be~that~} A_i(S) = A_i(S')
+  \textrm{~and~} U(S) = U(S')$
+\end{quote}
+\end{small}
+
+This means that speculative execution on core $i$ is allowed to depend on
+the state of core $i$, the uncore state, and the memory mapped by core
+$i$.  This multi-core formulation allows transient execution to affect
+both the core state $A_i(\cdot)$ as well as the uncore state $U(\cdot)$,
+at the micro-architectural level.  However, transient execution cannot
+affect either of these states in a way that depends on unmapped memory.
+
+Although hardware threads appear to provide separate execution
+contexts, with a separate page table for each hardware thread, they
+have extensive sharing of core resources.  To capture that, we consider
+$A_i(\cdot)$ to include the state of all hardware threads on core $i$,
+$\textrm{step}_i(\cdot)$ to include the execution of any hardware thread
+on core $i$, and $M_i(\cdot)$ to be the union of memory mapped by all
+of the hardware threads on core $i$ (i.e., the union of the page tables
+of the threads).  With this model, the contract allows leakage of mapped
+memory across hardware threads.
+
+
+\paragraph{Benefits of the USC.}
+
+The contract helps reconcile security and performance of speculative
+execution.  On the one hand, hardware can keep the high performance
+provided by out-of-order execution, because the contract allows almost
+all forms of speculative execution, as long as data during speculative
+execution is accessed through non-speculative TLB entries.  On the
+other hand, software can precisely specify what data can and cannot
+be used for speculative execution, by configuring page
+tables.  For example, if the mapped pages never contain sensitive data,
+then no mitigations are needed to defend against transient execution
+vulnerabilities.  Finally,
+because OS developers expect page faults and TLB misses to be quite
+expensive (compared to memory references), \contract doesn't change
+their performance expectations: developers already have adapted their
+designs to avoid excessive page faults or TLB invalidations.
+
+Although the contract is aspirational, one appealing property of the
+contract is that modern computer architectures already effectively aim
+to provide such a guarantee.  AMD explicitly states in bold font that
+their ``processors are designed to not speculate into memory that is
+not valid in the current virtual address memory range defined by the
+software defined page tables''~\cite[pg. 2]{amd:speculation}.  Intel
+has no explicit position about this contract, but it appears
+that they treat violations of this contract as bugs to be fixed in
+hardware or microcode, as evidenced by their fixes for Meltdown and
+L1TF, described below.
+
+%% The contract is aspirational, but this paper argues that it would
+%% be good if processor vendors commit to \contract.  The contract
+%% imposes few restrictions on the processor architecture: it allow
+%% processors to continue aggressively use speculation, except for TLB
+%% and page-table entries.  Yet, it provides software developers with a
+%% mechanism to control what physical memory can leak (i.e., only memory
+%% that has a virtual address in the current page table).  Furthermore,
+%% because OS developers expect page faults and TLB misses to be quite
+%% expensive (compared to memory references), \contract doesn't change
+%% their performance expectations: developers already have adapted their
+%% designs to avoid excessive page faults or TLB invalidations.
+
+\paragraph{USC and attacks.}
+
+The contract captures a common pattern that emerges in many transient
+execution attacks: an adversary can only leak micro-architectural
+state that is already present on the CPU, as well as the contents
+of mapped memory, but not the contents of memory that is not
+present in a page table.  As one example, consider the MDS family
+of attacks~\cite{canella:fallout, schwarz:zombieload,schaik:ridl}.
+These attacks allow an adversary to trick the kernel into leaking the
+contents of mapped memory, through careful orchestration of transient
+execution.  Linux prevents this class of attacks by clearing CPU buffers
+when crossing the user-kernel boundary.  This is needed because, when
+executing in kernel mode, all system memory is mapped and therefore
+could be leaked through transient execution.  The contract, however,
+captures the fact that only mapped memory is at risk with this attack.
+This allows for a more efficient mitigation of such attacks, as we
+demonstrate in \sys, by avoiding kernel mappings of sensitive memory.
+
+In contrast to the example of MDS attacks, which leak sensitive data
+from memory, the \contract{} does not help mitigate attacks that leak
+sensitive data already present in the CPU state.  For instance, the
+Spectre variant that leaks the contents of x86 MSRs (Spectre 3a) is not
+precluded by the contract, since the sensitive data being leaked is not
+present in memory at all.  As a result, an OS kernel must apply other
+mitigations to deal with such attacks.
+
+More generally, the contract helps categorize existing attacks
+based on which part of the system state they leak, as shown in
+\autoref{fig:attack-by-state}.  For attacks that leak core or uncore
+state, the contract has little to say in terms of how those attacks
+can be mitigated, as shown in the ``Mitigated by USC'' column.  As a
+result, \sys defends against these attacks much in the same way as Linux.
+In contrast, for attacks that leak the contents of memory, the contract
+gives a more efficient mitigation approach: simply avoid mapping memory
+that contains sensitive data.  This allows \sys to efficiently mitigate
+attacks such as some variants of Spectre and MDS.
+
+\begin{figure}
+\small
+\centering
+\begin{tabular}{@{}llll@{}}
+\textbf{Attack} & \textbf{Leaked state} & \textbf{Mitigated} & \textbf{Consistent} \\
+&& \textbf{by USC} & \textbf{with USC} \\
+\midrule
+
+Spectre variants & \multirow{5}{0.75in}{Memory} & Yes & Yes\\
+Meltdown & & Yes & Yes (ucode)\\
+MDS & & Yes & Yes\\
+PortSmash & & Yes & Yes\\
+L1TF & & Yes & Yes (ucode)\\
+
+\midrule
+
+Spectre variants & \multirow{3}{0.75in}{Core state} & No & Yes \\
+LazyFPU & & No & Yes \\
+System reg. read & & No & Yes \\
+
+\midrule
+
+Spectre variants & \multirow{3}{0.75in}{Uncore state} & No & Yes \\
+CrossTalk & & No & Yes \\
+SGAxe & & No & Yes \\
+
+\end{tabular}
+\caption{Transient execution attacks categorized based on the
+  state leaked by the attack.}
+\label{fig:attack-by-state}
+\end{figure}
+
+As shown in the ``Consistent with USC'' column, all of the attacks
+in \autoref{fig:attack-by-state} are consistent with the contract's
+requirements on the underlying hardware.  This is good in two ways.
+First off, this means that none of the known attacks violate the contract,
+and thus, the contract is a reasonable approach for mitigating transient
+execution attacks.  Second, this means that \contract can mitigate
+the class of attacks that it covers---namely, attacks that leak memory
+contents.
+
+There are two special cases:
+Meltdown and L1TF.  When originally discovered, these attacks bypassed
+the page table protections and allowed an adversary to obtain the
+contents of memory that was not mapped.  In both of these cases, the
+hardware manufacturer (Intel) considered them to be hardware bugs, as
+evidenced by the fact that both of them were fixed through hardware and
+microcode revisions~\cite{intel:meltdown, intel:l1tf}, as confirmed by
+Canella et al.~\cite{sok:transient}.\footnote{Canella et al. state that
+some variants of the Meltdown attack, such as Meltdown-BR, are still
+possible even with the most recent microcode.  Those variants, however,
+are bypassing software checks, rather than the hardware page table, and
+therefore do not violate the unmapped speculation contract.}
+%% In contrast,
+%% for other attacks like Spectre and MDS, the hardware manufacturer puts the
+%% mitigation responsibility on the OS kernel, and the contract \emph{does}
+%% hold for those attacks.
+
+

@@ -1,0 +1,156 @@
+\section*{Implementation}
+\label{s:impl}
+
+\begin{figure*}
+\centering
+\small
+\begin{tabular}{lll}
+{\bf Transient execution variant} & {\bf Strategy} & {\bf Support} \\
+\midrule
+V1 (Bound Check Bypass) & bounds clipping & partial \\
+V1.1 (Bounds Check Bypass Store) & lfence & partial \\
+V1.2 (Read-only Protection Bypass) & lfence & n/a (no in-kernel software sandbox) \\
+V2 (Branch Target Injection) &	retpoline & yes \\
+\quad \ditto & speculation barrier	&	yes \\
+\quad \ditto & return stack buffer filling	&	yes \\
+\quad \ditto & disable spec before BIOS calls &	n/a (no calls to BIOS in \sys) \\
+V3 (Meltdown) & Kernel page table isolation (KPTI) &	yes \\
+V3a (System Register Read) & microcode & yes \\
+V4 (Speculative Store Bypass) &	disable spec. or ctx. switch & yes \\
+LazyFPU	& hardware-assisted save/restore & yes \\
+SpectreRSB & return stack buffer filling & yes \\
+L1TF &	cache flush, no SMT & 	n/a (no VM entry in \sys)  \\
+\quad \ditto & no invalid PTEs	&	yes \\
+PortSmash & no SMT  &	no \\
+Microarchitectural Data Sampling  & CPU buffer clearing & yes \\
+(Fallout, RIDL, Zombie Load, etc.) & no SMT &	no \\
+Load Value Injection & lfence &	n/a  (no SGX in \sys) \\
+Meltdown-PK 
+(protection key bypass)
+& address space isolation & n/a (no protection keys) \\
+Meltdown-BR
+(bounds check instr. bypass)
+& lfence & n/a (no bounds check instructions) \\
+\end{tabular}
+\caption{Transient execution mitigations implemented in \sys.}
+\label{fig:mitigations-impl}
+\end{figure*}
+
+To demonstrate the feasibility of the \sys design, we implemented a
+prototype of \sys starting from the sv6 research kernel. The kernel
+  is monolithic, implementing traditional OS services such as virtual
+  memory, processes and threads, file systems, fine-grained
+  concurrency using RCU-like techniques, etc.  The sv6 kernel, is
+  written in C/C++, runs on x86 processors (both AMD and Intel), and
+  has decent uniprocessor performance and great multicore performance
+  and scalability~\cite{clements:sc}.
+
+\paragraph{Kernel changes.}
+
+\sys's design affects most core kernel subsystems, including the memory
+allocator, virtual memory, context switching and the scheduler, and the
+file system.  The simplicity of sv6 allowed for rapid experimentation
+with kernel designs to enable \sys, which would have been challenging
+to do in a more complex kernel like Linux, since it is time-consuming
+to make changes to core subsystems in the Linux kernel, which would have made
+design iterations far slower.
+
+To help partition the kernel data structures across Q domains, we
+developed Warden, a tool for tracking down the cause of world switches.
+Warden instruments page faults from the Q domain that lead to a
+world switch, and records a stack trace for each of them.  Examining the
+profile of these world switches allows the kernel developer to quickly
+understand what kernel data structures need to be partitioned or sharded
+to reduce the number of world switches, as well as the operations
+that need to be supported on these data structures within a Q domain.
+Although Warden identifies the data structures that are causing world
+switches, it is up to the kernel developer to identify an appropriate
+plan for partitioning the data structure so that no sensitive data can
+leak through side channels.
+
+To run applications on top of the \sys prototype kernel, we changed the
+\sys system call interface, including system call numbers, data structure
+layout, etc, to match that of Linux.  This allows unmodified Linux
+ELF executables to run on top of \sys, and ensures that \sys implements
+(a subset of) the same system calls that are available on Linux.
+
+We modified sv6 to use PCIDs to reduce the cost of switching page
+tables (see \autoref{ss:switch}).  To improve TLB shootdown
+performance, we modified sv6 to use Linux's shootdown strategy.  This
+is important, for example, for removing temporary mappings in a
+\texttt{read} and \texttt{write} systems calls (see \autoref{ss:fs}).
+
+\paragraph{Mitigations.}
+
+\sys implements side-channel mitigations for known transient
+execution attacks~\cite{hill:survey,sok:transient}, as shown
+in \autoref{fig:mitigations-impl}.  \sys mostly copies the
+mitigation strategies and their implementation from the Linux
+kernel~\cite{linux:vuln}; the most interesting exception is that \sys
+does not apply some of these mitigations to the Q domain, as described
+in \autoref{fig:mitigations}.
+
+For Spectre V1, \sys, adds an \texttt{lfence} instruction when copying
+from user code, and when taking an interrupt, exception, and NMI entry.
+\sys uses bounds clipping in fewer cases than Linux for two reasons:
+\sys has less code and we haven't performed a careful audit of the
+complete source code.  For Spectre V2, we compile \sys to use retpolines
+(by specifying the ``-mretpoline-external-thunk'' flag to \texttt{clang}). \sys
+also uses Linux's \texttt{FILL\_RETURN\_BUFFER} macro to fill the
+return stack buffer, and issues an indirect branch predictor barrier
+\texttt{IBPB} instruction on a context switch. For Spectre V3, \sys uses
+separate page tables (as described in \autoref{ss:overview}) and uses
+process-context identifiers (\texttt{PCID}s) to avoid TLB flushes.
+
+For Spectre V4, \sys issues an \texttt{lfence} on context switch. (If
+\sys supported generating code at runtime, the JITs would also have to
+be hardened.)  For LazyFPU, \sys uses the \texttt{xsaveopt}
+instruction to safe/restore floating point state.  For SpectreRSB,
+\sys fills the return stack buffer on context switch.  For L1TF, \sys
+avoids invalid PTEs. Like Linux, \sys doesn't address PortSmash; the
+default for the Linux kernel is to allow SMT, and \sys does too.  For
+microarchitectural data sampling attacks, \sys issues the
+\texttt{verw} instruction for clearing CPU buffers.
+
+Some attacks aren't applicable to \sys, because \sys doesn't support
+virtualization, secure enclaves, and hardware transactional memory;
+does not call into the BIOS; and does not implement in-kernel software
+sandboxes such as BPF.
+
+Like Linux, \sys also zeroes unused CPU registers on kernel entry, to
+reduce the avenues of attack available to an adversary.  To determine
+whether mitigations are necessary, \sys maintains a special variable
+called \texttt{secrets\_mapped} whose value is 0 in the Q domain and 1 in
+the K domain; this allows the rest of the kernel code to determine if it
+needs to perform mitigations just by using \texttt{if (secrets\_mapped)
+...} (as long as interrupts are disabled, to avoid races).  To help
+evaluate the performance impact of side-channel mitigations, \sys's
+implementation allows switching individual mitigations on and off at
+runtime, rather than at compile time or boot time.
+
+To improve performance, a few system calls invoke the world switch
+intentionally to avoid the extra overhead of a transparent world switch.
+For example, \texttt{open}, and \texttt{fork} always
+invoke world switch intentionally.  The \texttt{read} and \texttt{write}
+system calls invoke a world switch intentionally when they are reading
+or writing large amounts of data, since the cost of a world switch is
+less than the cost of shooting down the temporary mappings for that many
+file pages.  A page fault on a Copy-On-Write (COW) page also intentionally
+invokes a world switch.
+
+
+\paragraph{Lines of code.}
+
+The \sys prototype consists of about 34,000 lines of C++ code (for
+\texttt{kernel/} and \texttt{include/}), compared to 24,000 lines of
+C++ code for the sv6 kernel that \sys was derived from.
+\texttt{git diff --stat} reports roughly 17,000 lines of insertions and 5,000
+lines of deletions between sv6 and \sys.
+It is difficult to further
+break down \sys's lines of code, since many aspects of \sys's design
+required small changes throughout the kernel's source code.  For
+example, splitting up the kernel memory allocator required the use of
+C++ placement \texttt{new} in many parts of the kernel.  Similarly,
+implementing the Linux binary compatibility layer required making
+changes to the implementation of many system calls.
+

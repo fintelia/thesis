@@ -1,0 +1,405 @@
+\section*{Design}
+\label{s:design}
+
+Under the assumption of the unmapped speculation contract, this
+section describes how \sys can reduce the cost of mitigations for
+system calls.  \autoref{ss:overview} provides an overview of \sys's
+design with subsequent sections providing more detail about \sys's
+switch between protection domains (\autoref{ss:switch}), about the
+mitigations used by \sys when mitigations are necessary
+(\autoref{ss:mitigations}), \sys's kernel text (\autoref{ss:ktext}),
+\sys's memory management modifications (\autoref{ss:mm}), \sys's
+process management split (\autoref{ss:proc}), and \sys's file system
+split (\autoref{ss:fs}).
+
+\subsection*{Overview}
+\label{ss:overview}
+
+\begin{figure}[t]
+  \begin{center}
+    \include{fig/ward}
+  \end{center}
+  \vspace{-2\baselineskip}
+  \caption{Overview of \sys's address space layout with two processes
+    (indicated by the colors green and purple). Each process has a Q
+    and K domain. Q domains have access to public data (the grey
+    color) and per-process kernel data; the
+    white private region is unmapped kernel data. Each domain also has
+    its own stack and kernel text. In the Q domain, the kernel text
+    has no mitigations. The K domains map all memory, including
+    sensitive memory (indicated by red); all K domains have the same
+    memory layout. Data structures that are shared across processes,
+    such as pipes or file pages, can be mapped in multiple Q domains,
+    as indicated by the yellow color.}
+\label{fig:overview}
+\end{figure}
+
+\sys's design maintains two page tables per process.  One page table
+defines a process-specific view of kernel memory.  When a process is
+running with that page table, we say it is running in its
+\textit{quasi-visible} domain (or Q domain for short), and with its Q page
+table.  Following the unmapped speculation contract, \sys assumes any
+kernel memory mapped by the Q page table can be leaked to the
+currently running process.  Instead of using mitigations to prevent
+leaks of kernel memory, \sys arranges for the mappings in the Q page
+table to be such that they contain no sensitive data of other
+processes.
+
+When the process needs to access data that is not mapped in the Q page
+table, it can switch to its other page table, which maps all physical
+memory, including memory that contains sensitive data.  When a process
+is running with this page table, we say the process is executing in
+its \textit{K} domain with its K page table.  In its K domain, the process
+runs with the same mitigations as Linux currently uses.
+
+This design allows many system calls to execute in the Q domain,
+with no mitigation overhead.  As a simple example,
+\texttt{getpid} does not access any sensitive data; it needs
+access to only the kernel text and its own process structure.  A more
+interesting example is mapping anonymous memory: it requires access
+to the process's own page table and to the memory allocator, but not
+other processes' page tables or pages.
+
+\autoref{fig:overview} shows the address space layout in \sys in more
+detail.  Each process has a Q and K view of memory.  When a process is
+running in user space it runs in its Q domain (with no secrets mapped
+in the Q page table).  When a user process makes a system call it
+enters the kernel but stays in its Q domain.  The Q domain maps public
+kernel memory, Q-visible kernel memory, the process's Q domain stack,
+and the kernel text without mitigations.
+
+If a system call needs access to memory in the K domain, \sys performs a
+switch from its Q domain to its K domain. We refer to the switch from a Q
+domain to a K domain as a \textit{world switch}, because kernel code in
+a Q domain runs without most mitigations and the kernel code in the K domain
+runs with full mitigations. Furthermore, the process switches from its
+Q domain stack to its K domain stack.  The K domain, with access to
+all kernel memory, can then execute the rest of the system call with
+full mitigations.
+
+Achieving good performance in \sys depends on avoiding world switches.
+To reduce the number of world switches, \sys maps kernel data
+structures that contain no sensitive data into every Q domain.  For
+example, all Q domains map x86 configuration tables (IDT, GDT), some
+memory allocator state, etc.  On the other hand, kernel data structures
+that contain application data, such as process memory or saved register
+state, are not mapped into Q domains unless that process should have
+access to that data.
+
+\subsection*{World switch}
+\label{ss:switch}
+
+One of the challenges in \sys's design is that a system call often does
+not know upfront whether it will need to execute in the Q domain or in
+the K domain.  For example, a \texttt{read} system call might be able to
+execute purely in the Q domain, or might need access to sensitive data
+from the K domain, depending on the file descriptor that the process is
+reading from, and depending on whether this Q domain already has some
+sensitive data mapped or not.  To support this, \sys's design allows
+a system call to start executing in the Q domain, and switch to the K
+domain later as needed.
+
+\sys allows the Q domain to trigger a world switch either
+\textit{intentionally} or \textit{transparently}.  If the code
+determines that it must switch to the K domain, it can intentionally
+invoke the function, \texttt{kswitch()}, to perform a world switch.
+When \texttt{kswitch()} returns, the kernel thread is now executing in
+the K domain, and has access to all memory.  If the Q domain needs
+access to specific sensitive data which might or might not be already
+mapped, the Q domain can attempt to access the virtual address of that
+data.  If the data is already mapped in the Q domain, the access will
+succeed, no world switch happens, and the Q domain can continue
+executing.  If the data is not mapped, the Q domain triggers a page
+fault, which transparently triggers a world switch.  Once the page
+fault returns, the kernel thread is now executing in the K domain, as
+if it called \texttt{kswitch()}.  Compared to making an intentional
+call to \texttt{kswitch()}, the transparent approach incurs a slight
+overhead for executing the page fault, but allows large sections of
+the kernel to be kept completely unmodified, and allows the Q domain
+to elide a world switch altogether if the data is already mapped in
+the Q domain.
+
+The above design requires that a kernel thread can start executing in
+the Q domain and transparently switch to executing in the K domain.
+This means that any addresses that the kernel thread is referencing,
+including pointers to data structures, stack addresses, and function
+pointers, remain the same.  To achieve this, \sys ensures that the
+layout of the Q domain and the K domain match.  In particular, all
+data structures in the Q domain must appear at the same address in the
+K domain, and the kernel code (text) is located at the same address
+(even though the code is slightly different, as described in \autoref{ss:ktext}).
+
+The stack requires particular care because a kernel thread that is
+processing sensitive data in the K domain could inadvertently write
+that data to the stack.  For example, a \texttt{read()} system call
+from \texttt{/dev/random} needs to switch to the K domain to access the
+system-wide randomness pool.  However, the pseudo-random generator code
+might spill some of its state to the stack, depending on the compiler's
+choices.  If the stack is accessible from the Q domain, the sensitive
+data could in turn be leaked during the next entry into the Q domain by any
+thread within the same process.  At the same time, if the
+K domain stack was separate from the Q domain stack, pointers to stack
+locations before a world switch would no longer work after a world switch.
+To reconcile these constraints without having to rely on any dedicated
+compiler support, \sys maps a distinct kernel stack for each domain at the
+virtual address range and copies the Q domain stack contents to the K domain
+stack during a world switch.
+
+
+\subsection*{Mitigations}
+\label{ss:mitigations}
+
+% \fk{this section needs to be fleshed out and needs careful review}
+
+\begin{figure}
+\centering
+\small
+\begin{tabular}{lccc}
+{\bf Transient execution vulnerability} & {\bf U/Q} & {\bf K} & {\bf Ctx} \\
+
+\midrule
+L1TF & x & x & \\
+
+\midrule
+V1 (Bound Check Bypass) & & x & \\
+V1.1 (Bounds Check Bypass Store) & & x &\\
+V3 (Meltdown) && x &\\
+V4 (Speculative Store Bypass) &	 & x &  \\
+
+\midrule
+V2 (Branch Target Injection) & & x & x \\
+Microarchitectural Data Sampling && x & x\\
+\qquad (Fallout, RIDL, Zombie Load, etc.) \\
+
+\midrule
+
+LazyFPU &&& x \\
+SpectreRSB &&& x\\
+
+\midrule
+PortSmash & \multicolumn{3}{c}{Not applicable} \\
+Load Value Injection & \multicolumn{3}{c}{Not applicable} \\
+Meltdown-PK (protection key bypass) & \multicolumn{3}{c}{Not applicable} \\
+Meltdown-BR (bounds check instr. bypass) & \multicolumn{3}{c}{Not applicable} \\
+V1.2 (Read-only Protection Bypass) & \multicolumn{3}{c}{Not applicable} \\
+
+\end{tabular}
+\caption{The mitigations implemented in software by \sys{}.}
+\label{fig:mitigations}
+\end{figure}
+
+\autoref{fig:mitigations} shows the known transient execution
+attacks~\cite{hill:survey,sok:transient}, organized by the mitigations
+needed to address those attacks in \sys's design.  The columns (U/Q, K,
+and Ctx) indicate where the mitigations are needed: respectively, while
+executing in user-mode or Q domain; while executing in the K domain;
+and when context-switching between processes.
+
+% The first attack, System Register Read, requires mitigation in user-space
+% to prevent adversarial processes from obtaining the contents of sensitive
+% system registers.  However, no mitigation is required when running in
+% the K domain, since we do not expect the K domain to issue speculative
+% system register reads (much as in Linux).
+
+The L1TF attack allows leaking the contents of the L1 cache if
+there are partially-filled-in entries in the page table.  We think of
+this attack as a violation of the USC (see \autoref{fig:attack-by-state}),
+but a simple microcode fix, as well as clearing unused page table entries,
+makes the system agree with the USC, and avoids the L1TF attack.  Since
+L1TF allows leaking the contents of any data, \sys applies the mitigations
+both in user-space, Q domain, and K domain.
+
+The next category of attacks requires no mitigations in either user-space
+or Q domain.  Specifically, Spectre variants that bypass bounds checks
+require mitigation in the K domain, since there is sensitive memory
+contents that could be leaked as a result of a speculative check bypass.
+However, there is no sensitive data that can be leaked in the Q domain,
+owing to \contract{}.  Similarly, no mitigations are required on a
+context switch, since these attacks can only leak data from the current
+protection domain.
+
+Meltdown also falls in this category, but for a different reason.
+Meltdown allows an adversary to bypass the user-kernel boundary check
+in the page table.  \sys's use of a separate page table for the Q and
+K domains ensures that Meltdown cannot leak any confidential data, since
+no confidential data is available in the Q domain.  Recent microcode
+from Intel fixes the Meltdown attack in a way that avoids the need for
+software mitigations.
+
+The next category of attacks require mitigation both in the K domain and
+on context switch.  Spectre v2 and MDS attacks can allow an adversary to
+obtain sensitive data either from the OS kernel or from another process.
+However, no mitigations for these attacks are needed in the Q domain
+due to \contract{}: there is no sensitive data to leak in the Q domain
+of the currently running process.
+
+For some attacks, such as LazyFPU and SpectreRSB, mitigations are only
+required on context switch, because the attacks involve process-to-process
+leakage.
+
+Finally, a number of attacks are not applicable to \sys's simpler design,
+in contrast to Linux.  For example, \sys does not support SGX, does
+not support running virtual machines, and does not use certain hardware
+features (such as hardware bounds-check instructions or protection keys).
+
+
+\subsection*{Kernel text}
+\label{ss:ktext}
+
+Some of the mitigations involve changes to the executable kernel code
+(text), such as the use of retpolines in place of indirect jumps.
+These mitigations impose a performance cost, but they are not needed
+when executing in the Q domain.
+
+A na\"ive approach might be to compile the kernel code twice, with
+different compiler flags for mitigations, and load the two different kernel
+binaries in the Q and K domains respectively. However, this would break \sys's
+page fault triggered world switches because after completing the switch,
+execution would resume with the same instruction pointer and stack contents
+from before the switch but neither would be meaningful in the new text
+segment.
+
+Instead we need the two version to have matching instruction addresses and stack
+layouts. \sys achieves this by compiling the kernel only once, but then making
+two copies of the code at runtime. One copy is mapped into all the K domains,
+and the other into all the Q domains \textit{but at the same virtual address
+as in the K domains}. Switching between the two is seamless.
+
+At boot time, in a process inspired by Linux's \textsc{alternative}
+macro~\cite{lwn:alternative}, \sys locates each \texttt{call} or
+\texttt{jmp} in the Q text segment pointing to a retpoline thunk, and
+replaces them with the instruction that retpoline emulates. One
+complication is that indirect call instructions are only 2 or 3 bytes,
+compared to the 5 that a direct call instruction takes. If we tried
+to pad with a \texttt{NOP} instruction before or after, the pair would not execute
+atomically, so instead we prepend indirect calls with several
+repetitions of the CS-segment-override prefix, which is always ignored
+in 64-bit mode.
+
+
+\subsection*{Memory management}
+\label{ss:mm}
+
+Memory allocation in \sys is complicated by the fact that the contents
+of free pages may contain sensitive data.  In particular, if a page was
+freed by one process, its contents must be erased before the page can
+be mapped in another Q domain.  Zeroing out pages on every allocation
+would be costly, in particular when allocating kernel data structures,
+which do not otherwise require the memory to be zero-filled.
+
+To avoid the overhead of repeatedly zeroing kernel pages, \sys implements
+a sharded allocator for kernel memory.  Each Q domain has its own pool
+of pages for allocation, and the K domain keeps all of the kernel memory
+that is not part of any Q domain.  \sys transfers memory between these
+shards in batches to amortize the world switch overhead.  Keeping a pool
+of kernel memory in a Q domain allows the kernel to repeatedly allocate
+and free memory within a Q domain with little overhead.
+
+The other category of memory managed specially by \sys is public memory.
+\sys maintains a single pool of public pages, with separate functions,
+\texttt{palloc()} and \texttt{pfree()}, for allocating and freeing in
+that pool.  All public-pool pages are mapped in every Q domain.
+
+
+\subsection*{Process management}
+\label{ss:proc}
+
+When the \sys kernel switches from executing one process to another, it
+must perform a world switch, to ensure that confidential data does not
+leak across processes (such as the saved CPU registers that the kernel
+might save on the stack).  However, if a multi-threaded application
+is running, there is no security reason to perform a world switch when
+switching between multiple threads in the same process---all of the
+threads have the same privileges and have access to the same process
+address space.
+
+To avoid mitigation overhead when switching between threads in the
+same process, \sys splits the process descriptor, \texttt{struct
+  proc}, into two parts.  The first part stores sensitive process
+state, such as the saved CPU registers, and is not public.  The second
+part stores metadata about the process, such as the PID, the run
+queue, the scheduler state, etc.  This part is public and is used by
+the scheduler when deciding what thread to execute next.  As a result,
+the scheduler can pick the next thread without incurring a world
+switch.  Furthermore, if the next thread happens to be from the same
+process, the context switch code can also avoid performing a world
+switch.  Existing scheduler policies that favor picking threads from
+the same process mesh well with this approach.
+
+\subsection*{File system}
+\label{ss:fs}
+
+File system workloads involve access to several kernel data structures,
+including the inode cache and the page cache (containing file data).
+Inodes are challenging for \sys to deal with because they are smaller than
+a page, so it is not feasible to map them individually into a Q domain.
+However, achieving good performance for file system operations requires
+being able to access an inode without a world switch.  To reconcile
+this conflict, we chose to make all inode structures public in \sys,
+similar to our approach for splitting the \texttt{proc} structure above.
+If the inode had sensitive data (such as extended attributes), that
+part of the inode structure would need to be split off into a separate
+private structure, along the lines of how we split off the part of the
+\texttt{proc} structure storing saved CPU registers.
+
+File data pages are not public, because their contents might be sensitive.
+\sys implements an optimization that allows it to access file
+contents without a world switch.  In particular, after \sys checks
+the permissions on a file, it reads or writes the contents of a file
+page by temporarily mapping the corresponding physical page of memory
+into its Q domain's address space.  This allows the Q domain to access
+that specific memory page without the risk of leaking other pages;
+as a result, no mitigations or world switches are needed.  When the Q
+domain is finished with the file read or write, it unmaps the page and
+issues a TLB shootdown, in case the file is later truncated and the page
+gets reused for other data.
+
+
+\subsection*{Pipes}
+
+Pipes are different from many of the other kernel data structures discussed so
+far in that their contents shouldn't be visible globally, but their state can be
+associated with multiple processes at a time. \sys's goal is to ensure that if a
+reader and writer of a pipe run on different cores, then they don't incur world
+switches when they access the pipe. To achieve this, we store a pipe's data
+structures in shared memory regions between Q domains. These shared regions are
+lazily mapped into Q domains the first time a process accesses a pipe (doing the
+mapping on \texttt{fork} would cause unnecessary overhead), and unmapped when
+the last reference to the pipe within a Q domain is closed. 
+
+When a pipe becomes full or empty, the caller blocks on a condition
+variable. Subsequent reads or writes can observe which processes are blocked and
+add them to the scheduler run queue if appropriate. Neither of these operations
+requires access to any secret data so no world switch is triggered until a new
+process is scheduled. Thus, if the core remains idle until the blocking thread
+is added back to the run queue, the cost of a world switch is avoided.
+
+\subsection*{Discussion}
+
+\sys's design assumes that there are no secrets in the Q domain that
+need to be hidden from the user-level process.  For many secrets, they
+can be protected by placing them in the K domain, such as the seed
+of a system-wide randomness generator.  However, address-space layout
+randomization (ASLR) for the kernel address space is difficult to protect
+in this fashion, because kernel addresses must be used in the Q domain,
+and the addresses must match up between the Q domain and the K domain
+in order for world switches to work.  (Note that the initial seed that
+is used to randomize layout could be protected in the K domain, but the
+resulting randomized layout cannot be protected.)  As a result, kernel
+ASLR in \sys is susceptible to leakage of addresses through transient
+execution side-channels.
+
+Our \sys prototype does not include an optimized in-kernel network stack, but a
+reasonable approach might be to treat all network data as public, leaving
+it up to the application to encrypt any sensitive information sent over
+the network.  This meshes well with the recent trends in widespread use
+of TLS for network security, and allows for network operations to achieve
+high performance in \sys because no mitigations or world switches are
+required, and all network processing can stay in the Q domain.
+
+Hyperthreading is a source of many possible transient execution leaks,
+because a significant amount of microarchitectural state is shared
+between the execution contexts.  However, many Linux systems continue
+to run with hyperthreading \emph{enabled}, despite these risks, because
+of the high performance overhead they would incur if hyperthreading was
+entirely disabled.  \sys does the same.

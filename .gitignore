@@ -1,9 +1,10 @@
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
 latex.out
-proposal.aux
-proposal.fdb_latexmk
-proposal.fls
-proposal.log
-proposal.out
-proposal.pdf
-proposal.synctex.gz
 version.tex
+proposal.pdf
+thesis.pdf

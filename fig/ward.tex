@@ -1,0 +1,90 @@
+\begin{tikzpicture}[>=latex]
+
+  \tikzstyle{A}=[thick,rectangle, draw, minimum width=1cm,minimum
+    height=1.5cm, align=center];
+  \tikzstyle{Q1}=[thick,rectangle, draw, minimum width=1cm,minimum
+    height=1.5cm, align=center,fill=green!30];
+  \tikzstyle{Q2}=[thick,rectangle, draw, minimum width=1cm,minimum
+    height=1.5cm, align=center,fill=blue!30];
+  \tikzstyle{K}=[thick,rectangle, draw, minimum width=1cm,minimum
+    height=1.5cm, align=center,fill=red!30];
+  \tikzstyle{BIG}=[minimum height=3cm];
+  
+  \node [Q1,fill=gray!30] (q1) {};
+  \node [Q1,xshift=1.2cm,fill=gray!30] (qk1) {};
+  \node [Q2,xshift=2.4cm,fill=gray!30] (qk2) {};
+  \node [Q2,xshift=3.6cm,fill=gray!30] (q2) {};
+%  \node [K,xshift=4.8cm,fill=gray!30] (k) {};
+
+  \node [left=of q1.west,align=left,xshift=.5cm] (u) {Public};
+
+  \node [Q1,BIG,below=of q1.south,yshift=1cm,fill=white] (q11) {};
+  \node [K,BIG,below=of qk1.south,yshift=1cm] (qk11) {};
+  \node [Q2,BIG,below=of q2.south,yshift=1cm,fill=white] (q21) {};
+  \node [K,BIG,below=of qk2.south,yshift=1cm] (qk21) {};
+  
+  \node [Q1,below=of q1.south,yshift=1cm,minimum height=0.25cm] (q11a) {};
+  \node [K,below=of qk1.south,yshift=1cm,minimum height=0.25cm,fill=green!30] (qk1a) {};
+  \node [K,below=of qk2.south,yshift=1cm,minimum height=0.25cm,fill=green!30] (qk2a) {};
+
+  \node [Q1,below=of q1.south,yshift=0cm,minimum height=0.25cm,fill=yellow!70] (q21b) {};
+  \node [K,below=of qk1.south,yshift=0cm,minimum height=0.25cm,fill=yellow!70] (qk1c) {};
+  \node [K,below=of qk2.south,yshift=0cm,minimum height=0.25cm,fill=yellow!70] (qk2c) {};
+  \node [Q2,below=of q2.south,yshift=0cm,minimum height=0.25cm,fill=yellow!70] (q21b) {};
+
+  \node [Q1,below=of q1.south,yshift=-0.5cm,minimum height=0.25cm] (q11s1) {\small Stack};
+  \node [K,below=of qk1.south,yshift=-0.5cm,minimum height=0.25cm] (qk1s1) {\small Stack};
+  \node [K,below=of qk2.south,yshift=-0.5cm,minimum height=0.25cm] (qk2s1) {\small Stack};
+
+  \node [K,below=of qk1.south,yshift=-1.25cm,minimum height=0.25cm] (qk2s2) {\small Stack};
+  \node [K,below=of qk2.south,yshift=-1.25cm,minimum height=0.25cm] (qk2s2) {\small Stack};
+  \node [Q2,below=of q2.south,yshift=-1.25cm,minimum height=0.25cm] (q21s2) {\small Stack};
+  
+%  \node [K,below=of k.south,yshift=1cm,minimum height=0.25cm,fill=green!30] (k1a) {};
+%  \node [K,below=of k1a.south,yshift=1cm,minimum height=1.0cm] (k1b) {};
+%  \node [K,below=of k1b.south,yshift=1cm,minimum height=0.25cm,fill=blue!30] (k1c) {};
+
+  \node [left=of q11.west,align=left,xshift=.5cm] (u) {Private};
+
+%  \node [Q1,below=of q11b.south,yshift=0cm] (q12) {};
+%  \node [K,below=of qk1c.south,yshift=0cm] (qk12) {};
+%  \node [Q2,below=of q21b.south,yshift=0cm] (q22) {};
+%  \node [K,below=of qk2c.south,yshift=0cm] (qk22) {};
+  
+%  \node [K,below=of k1c.south,yshift=1cm] (k2) {};
+
+%  \node [left=of q12.west,align=left] (u) {Stack};
+  
+  \node [Q1,below=of q11.south,yshift=1cm,fill=gray!30] (q13) {\small No \\ \small miti- \\ \small gat- \\ \small ions};
+  \node [K,below=of qk11.south,yshift=1cm] (qk13) {\small With \\ \small miti- \\ \small gat- \\ \small ions};
+  
+  \node [Q2,below=of q21.south,yshift=1cm,fill=gray!30] (q23) {\small No \\ \small miti- \\ \small gat- \\ \small ions};
+  \node [K,below=of qk21.south,yshift=1cm] (qk23) {\small With \\ \small miti- \\ \small gat- \\ \small ions};
+  
+%  \node [K,below=of k2.south,yshift=1cm] (k3) {};
+
+  \node [left=of q13.west,align=left,xshift=.5cm] (u) {Text};
+
+  %% user space
+  
+  \node [A,above=of q1.north,yshift=-1cm,fill=green!30] (a1) {};
+  \node [A,above=of q2.north,yshift=-1cm,fill=blue!30] (a2) {};
+
+  \node [A,above=of qk1.north,yshift=-1cm,fill=green!30] (a11) {};
+  \node [A,above=of qk2.north,yshift=-1cm,fill=blue!30] (a21) {};
+
+  \draw[thick,color=red] (q1.north) ++(-2cm,0) -- ++(7.5cm,0)  node {};
+
+  \node [right=of a1.east,xshift=3cm,align=left] (u) {User\\space};
+  \node [right=of q1.east,xshift=3cm,align=left] (k) {Kernel\\space};
+
+  \node [below=of q13.south,yshift=1cm,align=left] {Q1};
+  \node [below=of qk13.south,yshift=1cm,align=left] {K1};
+  
+  \node [below=of q23.south,yshift=1cm,align=left] {Q2};
+  \node [below=of qk23.south,yshift=1cm,align=left] {K2};
+  
+%  \node [below=of k3.south,yshift=1cm,align=left] {K};
+  
+\end{tikzpicture}
+
