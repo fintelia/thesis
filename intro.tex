@@ -35,27 +35,26 @@ if (index < array_size) {
 \caption{Example code for a Spectre V1 attack}
 \label{fig:spectre-code}
 \end{figure}
-Spectre V1 was one of the earliest attacks discovered.
-It leaks information between different processes, between a process and the operating system kernel, or between a sandbox and the code running within.
-This attack relies on a specific sequence of instructions (a ``gadget'') to be located in the victim's code.
-The gadget consists of a bounds check followed by two array accesses as shown in Figure~\ref{fig:spectre-code}, where the index value can be controlled by the adversary.
+Spectre V1 was one of the earliest attacks discovered and leaks information between different processes, between a process and the operating system kernel, or between a sandbox and the code running within.
+The attack relies on a specific sequence of instructions (a ``gadget'') to be located in the victim's code region.
+The gadget consists of a bounds check followed by two array accesses as shown in Figure~\ref{fig:spectre-code}, in which the index value can be controlled by the adversary.
 
 To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes which will train the CPU branch predictor that the branch is usually taken.
-Then, the attackers forces the array size to be evicted from the CPU cache and calls the gadget with an out of bounds array.
+Then, the attackers forces the array size to be evicted from the CPU cache and calls the gadget with an out of bounds index.
 
 When execution reaches the bounds check, the processor will initiate a load to read the array size.
 However before that load completes, the CPU will speculatively start executing the body of the if statement because the branch predictor has previously learned that the index is usually in bounds.
 The first array access will read past the end of the array into arbitrary memory and pull that value into a CPU register.
 The second array access then loads a specific cache line whose index will depend on the first read.
 
-Eventually the branch misprediction will be discovered and rolled back but the cache contents will not be.
+Eventually the branch misprediction will be discovered and rolled back, but the cache contents will not be.
 This enables the attacker to later time how long it takes to access each cache entry and infer which value must have been pulled in by the victim application.
 
 \subsection{Other Attacks}
 There are a whole range of other transient execution attacks which can be divided into three categories~\cite{hill:survey}.
 Spectre type attacks like the one described above rely on processor misprediction to incompletely roll back executed instructions.
 Meanwhile Meltdown type attacks achieve the same effect using a trapping operation to trigger the roll back.
-Finally, Microarchitural Data Sampling exploits the processors forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
+Finally, Microarchitural Data Sampling exploits the processor's forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
 
 \section{Mitigation Approaches}
 \subsection{Software}
@@ -69,7 +68,7 @@ Meanwhile, operating system makers and other software vendors deployed new versi
 \subsection{Hardware}
 Software and microcode approaches to preventing transient execution attacks are severely constrained compared to what is possible by modifying CPU designs themselves.
 For some attacks, straightforward architectural changes completely eliminate the vulnerability with almost no performance overhead and are already deployed in commercially available CPUs.
-For other attacks, performant hardware mitigations for others remain an active area of research~\cite{OISA, ConTExT}.
+For other attacks, performant hardware mitigations remain an active area of research~\cite{OISA, ConTExT}.
 
 \section{Motivation}
 Mitigations for transient execution attacks can introduce significant performance impacts.
