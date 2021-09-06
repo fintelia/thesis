@@ -13,8 +13,8 @@ Worse still, computer architectural approaches to solve transient execution atta
 Nonetheless, generations of processors designed after the discovery of transient execution attacks have improvements that make them inherently less susceptible to attack.
 It is desirable to understand how this was achieved yet little has been published on exactly what changes were made.
 
-\section*{Transient Execution Attacks}
-\subsection*{Speculative Execution}
+\section{Transient Execution Attacks}
+\subsection{Speculative Execution}
 Speculative execution is an optimization used in the design of modern processors to drastically improve their performance, by enabling them to do useful work during times when they would otherwise be stalled waiting to load information from RAM.
 
 The way speculative execution works is that when the CPU reaches a conditional branch instruction that it doesn't yet know whether will be taken or not, it predicts the outcome based on prior executions of that same instruction and then continues running under the assumption that the guess was correct.
@@ -24,7 +24,7 @@ When a branch is mispredicted the CPU rolls back the architecturally visible res
 In general when reverting transiently executed instructions, their microarchitural results -- like which inserting or evicting lines from the cache -- are not undone.
 Such microarchitural effects are the core of transient execution attacks.
 
-\subsection*{Example Attack}
+\subsection{Example Attack}
 \begin{figure}[h]
 \begin{lstlisting}[language=C, style=codeStyle]
 if (index < array_size) {
@@ -51,17 +51,14 @@ The second array access then loads a specific cache line whose index will depend
 Eventually the branch misprediction will be discovered and rolled back but the cache contents will not be.
 This enables the attacker to later time how long it takes to access each cache entry and infer which value must have been pulled in by the victim application.
 
-\subsection*{Other Attacks}
+\subsection{Other Attacks}
 There are a whole range of other transient execution attacks which can be divided into three categories~\cite{hill:survey}.
 Spectre type attacks like the one described above rely on processor misprediction to incompletely roll back executed instructions.
 Meanwhile Meltdown type attacks achieve the same effect using a trapping operation to trigger the roll back.
 Finally, Microarchitural Data Sampling exploits the processors forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
 
-\section*{Motivation}
-
-
-\section*{Overview of Existing Solutions}
-\subsection*{Software Approaches}
+\section{Mitigation Approaches}
+\subsection{Software}
 As the embargo period wound down on the original Meltdown and Spectre attacks, operating system vendors and processor makers hurriedly rolled out patches to mitigate these vulnerabilities.
 The patches came at a significant performance cost, as was widely commented on at the time. 
 
@@ -69,20 +66,27 @@ These fixes took two forms.
 Hardware vendors released microcode patches for existing processors which modified behavior and added some new functionality to control speculative execution~\cite{intel:l1tf}.
 Meanwhile, operating system makers and other software vendors deployed new versions which blocked the attacks via a combination of software only techniques~\cite{intel:retpoline, linux:kpti} and leveraging the functionality added by microcode~\cite{intel:l1tf}.
 
-\subsection*{Hardware Changes}
+\subsection{Hardware}
 Software and microcode approaches to preventing transient execution attacks are severely constrained compared to what is possible by modifying CPU designs themselves.
 For some attacks, straightforward architectural changes completely eliminate the vulnerability with almost no performance overhead and are already deployed in commercially available CPUs.
 For other attacks, performant hardware mitigations for others remain an active area of research~\cite{OISA, ConTExT}.
 
-\section*{Contributions}
+\section{Motivation}
+Mitigations for transient execution attacks can introduce significant performance impacts.
+For instance, the the KAISER patches to mitigate Meltdown cause system calls to be up to 8$\times$ slower, while flushing microarchitural buffers to avoid MDS can add thousands of cycles to every context switch.
+
+The goal of this work is to gain a detailed understand of how much cost the various mitigations incur across vendors and generations of processors, with the hope of being able to identify trends and extrapolate future development in this space.
+Of particular interest is anticipating whether these attacks will cause a drag on computer performance long into the future.
+
+\section{Contributions}
 This work has two major contributions
 \begin{itemize}
 \item Across successive generations of processors designed both before and after the publication of these attacks, we quantify the performance cost of hardware mitigations and reverse engineer microarchitectural changes made in response to the attacks. The insights from this analysis indicate that the most expensive mitigations are no longer required, and that while new attacks continue to be discovered, the overall performance impact of these new attacks has so far been significantly less severe.
 
-\item For processors which currently require expensive software mitigations, we present Ward, an operating system architecture which achieves similar security guarantees but incurs substantially lower overhead. Ward particularly identifies KPTI~\cite{linux:kpti} (Linux's chosen defense against Meltdown) as a key source of overhead.
+\item For processors which currently require expensive software mitigations, we present Ward, an operating system architecture which achieves similar security guarantees to those mitigations but incurs substantially lower overhead. Ward particularly identifies KPTI~\cite{linux:kpti} (Linux's chosen defense against Meltdown) as a key source of overhead.
 \end{itemize}
 
-\section*{Evolution of Mitigation Cost}
+\section{Evolution of Mitigation Cost}
 We survey the cost of mitigations across multiple processor generations and across the two main vendors for x86 processors.
 This enables us to understand both which costs are specific only to CPUs from a particular vendor as well as see trends in how costs are changing over time.
 
@@ -95,7 +99,7 @@ For each attack, we attempt to measure execution time of the instruction or inst
 Our experiments show substantial variations between processors in how long individual mitigations take, and demonstrate that some of the most costly are completed avoided on the newest CPUs. 
 The outcome of this investigation suggests that overheads to prevent transient execution attacks have significantly declined.
 
-\section*{Ward}
+\section{Ward}
 In this work we propose and evaluate a novel operating system architecture which is resilient to transient execution attacks, yet does not require the expensive software mitigations that existing operating systems deploy. 
 
 In Ward, the operating system kernel is divided into multiple domains.
@@ -104,3 +108,9 @@ At any given point in time the processor is either executing in userspace, in a 
 
 Notably when executing in a Q-domain, Ward is able to avoid many of the expensive software mitigations that would ordinarily be required by a conventional OS when running in kernel mode on processors vulnerable to Spectre and Meltdown.
 And since Ward is able to handle many system calls and traps entirely in the Q-domain, it can achieve considerably better performance on many workloads compared to conventional operating system designs.
+
+\section{Outline}
+The next chapter starts with an end-to-end performance evaluation, and then goes into detail on each major attack describing both background on how it works as well as analyzing its impact on each evaluated system.
+We then proceed to introduce the Unmapped Speculation Contract which encapsulates some security guarantees that we believe even old/vulnerable processors are able to provide.
+Next is a description of the Ward kernel design and an evaluation of how it performs.
+We follow up with some discussion, an overview of related work, and then conclude.

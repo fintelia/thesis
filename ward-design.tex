@@ -1,4 +1,4 @@
-\section*{Design}
+\section{Design}
 \label{s:design}
 
 Under the assumption of the unmapped speculation contract, this
@@ -12,7 +12,7 @@ mitigations used by \sys when mitigations are necessary
 process management split (\autoref{ss:proc}), and \sys's file system
 split (\autoref{ss:fs}).
 
-\subsection*{Overview}
+\subsection{Overview}
 \label{ss:overview}
 
 \begin{figure}[t]
@@ -86,7 +86,7 @@ that contain application data, such as process memory or saved register
 state, are not mapped into Q domains unless that process should have
 access to that data.
 
-\subsection*{World switch}
+\subsection{World switch}
 \label{ss:switch}
 
 One of the challenges in \sys's design is that a system call often does
@@ -146,7 +146,7 @@ virtual address range and copies the Q domain stack contents to the K domain
 stack during a world switch.
 
 
-\subsection*{Mitigations}
+\subsection{Mitigations}
 \label{ss:mitigations}
 
 % \fk{this section needs to be fleshed out and needs careful review}
@@ -243,7 +243,7 @@ not support running virtual machines, and does not use certain hardware
 features (such as hardware bounds-check instructions or protection keys).
 
 
-\subsection*{Kernel text}
+\subsection{Kernel text}
 \label{ss:ktext}
 
 Some of the mitigations involve changes to the executable kernel code
@@ -277,7 +277,7 @@ repetitions of the CS-segment-override prefix, which is always ignored
 in 64-bit mode.
 
 
-\subsection*{Memory management}
+\subsection{Memory management}
 \label{ss:mm}
 
 Memory allocation in \sys is complicated by the fact that the contents
@@ -301,7 +301,7 @@ The other category of memory managed specially by \sys is public memory.
 that pool.  All public-pool pages are mapped in every Q domain.
 
 
-\subsection*{Process management}
+\subsection{Process management}
 \label{ss:proc}
 
 When the \sys kernel switches from executing one process to another, it
@@ -326,7 +326,7 @@ process, the context switch code can also avoid performing a world
 switch.  Existing scheduler policies that favor picking threads from
 the same process mesh well with this approach.
 
-\subsection*{File system}
+\subsection{File system}
 \label{ss:fs}
 
 File system workloads involve access to several kernel data structures,
@@ -355,7 +355,7 @@ issues a TLB shootdown, in case the file is later truncated and the page
 gets reused for other data.
 
 
-\subsection*{Pipes}
+\subsection{Pipes}
 
 Pipes are different from many of the other kernel data structures discussed so
 far in that their contents shouldn't be visible globally, but their state can be
@@ -374,7 +374,7 @@ requires access to any secret data so no world switch is triggered until a new
 process is scheduled. Thus, if the core remains idle until the blocking thread
 is added back to the run queue, the cost of a world switch is avoided.
 
-\subsection*{Discussion}
+\subsection{Discussion}
 
 \sys's design assumes that there are no secrets in the Q domain that
 need to be hidden from the user-level process.  For many secrets, they

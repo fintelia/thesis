@@ -22,6 +22,7 @@
 \pagestyle{empty}
 \doublespacing
 \renewcommand{\ttdefault}{pxtt}
+%\setcounter{secnumdepth}{-1}
 
 \input{ward-cmds}
 
@@ -46,18 +47,26 @@
 \author{ {\rm Jonathan Behrens} \\ \textit{MIT} }
 \maketitle
 
-\chapter*{Introduction}
+\tableofcontents
+
+\chapter{Introduction}
 \input{intro.tex}
 
-\chapter*{Ward}
+\chapter{Performance Analysis}
+
+\chapter{Unmapped Speculation Contract}
 \input{ward-intro}
 \input{ward-motivation}
 \input{ward-approach}
+\chapter{Ward}
 \input{ward-design}
 \input{ward-impl}
 \input{ward-eval}
+\chapter{Discussion}
 \input{ward-discussion}
+\chapter{Related Work}
 \input{ward-related}
+\chapter{Conclusion}
 \input{ward-concl}
 
 \pagebreak

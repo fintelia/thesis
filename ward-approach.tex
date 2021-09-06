@@ -1,4 +1,4 @@
-\section*{Goal and threat model}
+\section{Goal and threat model}
 
 \sys's goal is to reduce the performance cost of mitigations for transient
 execution attacks.  In principle, \sys's techniques can reduce not only
@@ -81,7 +81,7 @@ as Rowhammer or RAMbleed), cache side channels (such as cache timing
 attacks), power side channels, etc.
 
 
-\section*{Approach: Unmapped speculation contract}
+\section{Approach: Unmapped speculation contract}
 
 \sys's design for mitigating transient execution attacks relies
 on page tables.  Specifically, if a page of physical

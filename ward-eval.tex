@@ -1,4 +1,4 @@
-\section*{Evaluation}
+\section{Evaluation}
 \label{s:eval}
 
 To demonstrate the benefits of \sys's design, this section
@@ -34,7 +34,7 @@ system calls?  (\autoref{ss:faster})
 \end{figure*}
 
 
-\subsection*{Experimental methodology}
+\subsection{Experimental methodology}
 
 To answer these questions, we consider three different configurations of \sys:
 
@@ -85,7 +85,7 @@ mitigations, and thus the performance effect is minimal.
 For the Linux measurements of \bench, we use the 5.4.0 kernel on Ubuntu 20.04.
 
 
-\subsection*{\sys's USC-based fast mitigations}
+\subsection{\sys's USC-based fast mitigations}
 \label{ss:faster}
 
 \paragraph{\bench.}
@@ -218,7 +218,7 @@ The remaining overhead is due to system calls like \texttt{openat} that
 require a world barrier for accessing potentially sensitive file contents.
 
 
-\subsection*{World switch}
+\subsection{World switch}
 \label{ss:world}
 
 \begin{figure}
@@ -257,7 +257,7 @@ them out at runtime: the retpoline that disables branch prediction
 for indirect jumps through the system call table costs 22 cycles.
 
 
-\subsection*{\sys memory overhead}
+\subsection{\sys memory overhead}
 \label{ss:memoverhead}
 
 Because the memory protection mechanisms that \sys uses to expose non-secret
@@ -287,7 +287,7 @@ be only used by the same Q domain.
 \label{fig:memoverhead}
 \end{figure}
 
-\subsection*{Security}
+\subsection{Security}
 \label{ss:secure}
 
 %\paragraph{\sys mitigations work.}
@@ -352,7 +352,7 @@ them.
 %% \label{fig:attackeval}
 %% \end{figure}
 
-%% \subsection*{Linux}
+%% \subsection{Linux}
 %% \label{ss:linux}
 
 %% To gauge whether we could expect similar improvements for fast
