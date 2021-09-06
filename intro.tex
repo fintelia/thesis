@@ -1,4 +1,4 @@
-\section*{Motivation}
+\noindent
 Side channel attacks leak information between isolation domains outside of the normal information flow of a system.
 Several years ago a new class of side channel attacks was discovered impacting CPUs from all major vendors~\cite{lipp:meltdown, kocher:spectre}.
 These attacks -- termed transient execution attacks -- exploit details of how modern processors use speculative execution to run more quickly. 
@@ -57,6 +57,9 @@ Spectre type attacks like the one described above rely on processor mispredictio
 Meanwhile Meltdown type attacks achieve the same effect using a trapping operation to trigger the roll back.
 Finally, Microarchitural Data Sampling exploits the processors forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
 
+\section*{Motivation}
+
+
 \section*{Overview of Existing Solutions}
 \subsection*{Software Approaches}
 As the embargo period wound down on the original Meltdown and Spectre attacks, operating system vendors and processor makers hurriedly rolled out patches to mitigate these vulnerabilities.
@@ -74,25 +77,13 @@ For other attacks, performant hardware mitigations for others remain an active a
 \section*{Contributions}
 This work has two major contributions
 \begin{itemize}
-\item For processors which currently require expensive software mitigations, we present Ward, an operating system architecture which achieves similar security guarantees but incurs substantially lower overhead.
-Ward particularly identifies KPTI~\cite{linux:kpti} (Linux's chosen defense against Meltdown) as a key source of overhead.
+\item Across successive generations of processors designed both before and after the publication of these attacks, we quantify the performance cost of hardware mitigations and reverse engineer microarchitectural changes made in response to the attacks. The insights from this analysis indicate that the most expensive mitigations are no longer required, and that while new attacks continue to be discovered, the overall performance impact of these new attacks has so far been significantly less severe.
 
-\item Across successive generations of processors designed both before and after the publication of these attacks, we quantify the performance cost of hardware mitigations and reverse engineer microarchitectural changes made in response to the attacks.
-The insights from this analysis indicate that the most expensive mitigations are no longer required, and that while new attacks continue to be discovered, the overall performance impact of these new attacks has so far been significantly less severe.
+\item For processors which currently require expensive software mitigations, we present Ward, an operating system architecture which achieves similar security guarantees but incurs substantially lower overhead. Ward particularly identifies KPTI~\cite{linux:kpti} (Linux's chosen defense against Meltdown) as a key source of overhead.
 \end{itemize}
 
-\section*{Ward}
-In this work we propose and evaluate a novel operating system architecture which is resilient to transient execution attacks, yet does not require the expensive software mitigations that existing operating systems deploy. 
-
-In Ward, the operating system kernel is divided into multiple domains.
-The K-domain includes all information accessible to the operation system, while each process has its own associated Q-domain consisting only of the userspace memory and kernel space data structures related to that one process.
-At any given point in time the processor is either executing in userspace, in a Q-domain, or in the K-domain. 
-
-Notably when executing in a Q-domain, Ward is able to avoid many of the expensive software mitigations that would ordinarily be required by a conventional OS when running in kernel mode on processors vulnerable to Spectre and Meltdown.
-And since Ward is able to handle many system calls and traps entirely in the Q-domain, it can achieve considerably better performance on many workloads compared to conventional operating system designs.
-
 \section*{Evolution of Mitigation Cost}
-We also survey the cost of mitigations across multiple processor generations and across the two main vendors for x86 processors.
+We survey the cost of mitigations across multiple processor generations and across the two main vendors for x86 processors.
 This enables us to understand both which costs are specific only to CPUs from a particular vendor as well as see trends in how costs are changing over time.
 
 First, we run end-to-end benchmarks on each system measuring operating system and web-browser workloads.
@@ -103,3 +94,13 @@ The bulk of our work is a detailed breakdown of individual attacks where we can 
 For each attack, we attempt to measure execution time of the instruction or instruction sequence used to mitigate it on each of our impacted systems.
 Our experiments show substantial variations between processors in how long individual mitigations take, and demonstrate that some of the most costly are completed avoided on the newest CPUs. 
 The outcome of this investigation suggests that overheads to prevent transient execution attacks have significantly declined.
+
+\section*{Ward}
+In this work we propose and evaluate a novel operating system architecture which is resilient to transient execution attacks, yet does not require the expensive software mitigations that existing operating systems deploy. 
+
+In Ward, the operating system kernel is divided into multiple domains.
+The K-domain includes all information accessible to the operation system, while each process has its own associated Q-domain consisting only of the userspace memory and kernel space data structures related to that one process.
+At any given point in time the processor is either executing in userspace, in a Q-domain, or in the K-domain. 
+
+Notably when executing in a Q-domain, Ward is able to avoid many of the expensive software mitigations that would ordinarily be required by a conventional OS when running in kernel mode on processors vulnerable to Spectre and Meltdown.
+And since Ward is able to handle many system calls and traps entirely in the Q-domain, it can achieve considerably better performance on many workloads compared to conventional operating system designs.
