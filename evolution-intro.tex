@@ -1,0 +1,79 @@
+\section{Introduction}
+Transient execution attacks are a class of side channel attacks that leak information across privilege domains using microarchitectural details of how processors are implemented.
+Spectre and Meltdown were the first---but far from only---of these attacks to be discovered.
+
+From the end-user perspective, a significant concern from transient execution side channel attacks is the performance degradation they cause.
+This is because operating systems and applications have deployed mitigations to restore their previous security guarantees, but those same mitigations make systems slower.
+Despite this highly visible impact on user experience, we know of no systematic study that quantifies what this overhead is for modern software stacks and how it may differ across generations of CPUs.
+
+To understand how performance has evolved, our experiments look at a range of processors including Intel processors that predate the discovery of Spectre and Meltdown (but which are still in active use), newer ones which incorporate some mitigations, and even more recent models with still more mitigations.
+We also look at two AMD processors, enabling us to compare across vendors.
+
+We first consider the end-to-end impact of transient execution attacks.
+Across a range of benchmarks, we characterize the overhead caused by mitigations on each CPU and further attribute how much of the overall slowdown is caused by each individual mitigation.
+This end-to-end evaluation guides our microbenchmarking of individual mitigations.
+For mitigations that incurs meaningful overhead, we investigate in more detail to understand their performance characteristics.
+
+On workloads like the LEBench~\cite{ren:lebench} benchmark suite that stress the user-kernel interface we find overheads have declined from over 30\% on our oldest processor to under 3\% on the most recent CPUs.
+By contrast, when examining the impact on JavaScript engine performance as measured by the Octane 2 benchmark suite~\cite{google:octane2}, we observed no improvement across successive generations at all.
+On a compute intensive benchmark, there was well under one percent overhead on each of the processors we evaluated.
+
+Our microbenchmarks explain these trends.
+The most expensive mitigations on the first workload stressing the operating system interface have been fixed in hardware on newer hardware, thereby eliminating the overhead.
+By contrast, JavaScript sandboxing stresses a different set of mitigations which
+have substantial cost but none of which have been fixed through hardware changes.
+
+The primary contribution of this work is to draw attention to the
+performance critical areas for improving transient execution
+mitigations, driven by (1) an end-to-end survey of how mitigation
+costs have evolved over processor generations, and (2) detailed
+microbenchmarking of individual mitigations.  To analyze hardware
+mitigations for Spectre V2, the paper also contributes a new technique to measure
+speculation using ideas from Bölük~\cite{speculating-x86}.
+Our benchmarks and analysis code will be made available on GitHub.
+
+
+There are some limitations.
+Our evaluation does not consider a virtual machine workload, though in such workloads guest-hypervisor boundary crossings tend to be much less frequent than user-kernel boundary crossings so mitigation overheads should be correspondingly lower.
+We are limited in the number of processor generations to evaluate and at the same time the processors we do consider are diverse in terms of clock speed, core count, power draw, and many other dimensions.
+And also the conclusions we can draw are constrained by the lack of
+public details on how hardware mitigations are implemented.  Finally,
+new attacks may require new mitigations with their own overheads.
+
+The rest of the paper is organized as follows.  \autoref{s:related}
+relates this paper to previous work.  \autoref{s:background} describes
+transient-execution attacks and their mitigations from a performance
+perspective. \autoref{s:benchmarks} measures the penalty of
+mitigations on several end-to-end workloads. \autoref{s:eval} analyzes
+individual mitigations that have significant impact on end-to-end
+performance. \autoref{s:analysis} zooms in on Spectre V2 mitigations.
+\autoref{s:discussion} presents ideas for how to reduce the lingering
+performance impact of mitigations.  \autoref{s:concl} summarizes our
+conclusions.
+
+
+% \subsection{Classifying attacks}
+
+% Prior work has focused on classifying transient execution attacks based on the microarchitectural component that is being attacked or the mechanism used to carry out the attack.
+% We take a different approach and look instead look at the required mitigation.
+
+% \begin{itemize}
+%     \item \textbf{Hardware bugs} are cases where straightforward changes to hardware can prevent an
+%       attack with essentially no hardware or software overhead.
+%     \item \textbf{Fundamental flaws} cannot be prevented in hardware without substantial changes and high overhead.
+%     \item \textbf{Contained vulnerabilities} have hardware mitigations but those mitigations are either incomplete or incur nontrivial overhead.
+% \end{itemize}
+
+% Hardware bugs likely represent the least interesting category for study because essentially no new processors produced should be vulnerable and existing impacted systems will likely be phased out in the coming years.
+% Nonetheless, they cannot be entirely ignored because the required software mitigations can have substantial costs.
+% The Meltdown vulnerability, for instance, is responsible for much of the headline "spectre \& meltdown overhead" on older Intel processors.
+% In this work, we restrict our examination of hardware bugs only to measuring the software mitigation overheads and (where possible) confirming that they've been patched on newer hardware.
+
+% At the other end of the spectrum, attacks like the original Spectre V1 are exceedingly hard to mitigate efficiently in hardware, and to our knowledge no shipping processor from a major vendor yet resolves it in silicon.
+% Here, software mitigations are applicable to all processors.
+
+% \subsection{Contributions}
+% \begin{itemize}
+%   \item Detailed measurement of the overheads for several workloads along with attribution to specific mitigations.
+%   \item Study of mitigation costs for individual attacks across generations of hardware.
+% \end{itemize}

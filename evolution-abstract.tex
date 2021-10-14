@@ -1,0 +1,15 @@
+%Your abstract text goes here. Just a few facts. Whet our appetites.
+%Not more than 200 words, if possible, and preferably closer to 150.
+
+Today's applications pay a performance penalty for mitigations to
+protect against transient execution side-channel attacks such as
+Meltdown~\cite{lipp:meltdown} and Spectre~\cite{kocher:spectre}.
+This paper measures what those costs are across a range of CPUs from multiple vendors, and indentifies trends over successive generations of processors.
+On workloads that stress the Linux kernel interface (which have received the most attention) there have been substantial improvements with slowdowns on LEBench going from over 30\% to less than 3\%.
+By contrast, the overhead for JavaScript applications running inside
+Firefox are impacted by an almost entirely different set of
+mitigations.
+On Octane 2, overhead has remained roughly flat at 20\%.
+The overhead of software mitigations hasn't changed much,
+but hardware changes that removed the need for a
+few of the most expensive mitigations have significantly reduced overhead on some workloads.

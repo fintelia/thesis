@@ -135,6 +135,20 @@ pages = {554--569},
   howpublished = {\url{https://software.intel.com/security-software-guidance/software-guidance/rogue-data-cache-load}},
 }
 
+@misc{arm:speculation,
+  author = {{Arm, Ltd.}},
+  title = {Cache Speculation Side-channels},
+  year = 2020,
+  howpublished = {\url{https://developer.arm.com/support/arm-security-updates/speculative-processor-vulnerability}},
+}
+
+@misc{ibm:speculation,
+  author = {{IBM}},
+  title = {Potential Impact on the Processors in the POWER Family},
+  year = 2019,
+  howpublished = {\url{https://www.ibm.com/blogs/psirt/potential-impact-processors-power-family/}},
+}
+
 @misc{intel:l1tf,
   author = {{Intel, Inc.}},
   title = {Software Guidance: {L1} Terminal Fault},
@@ -245,4 +259,283 @@ year={2020},
   timestamp = {Wed, 29 May 2019 11:27:50 +0200},
   biburl    = {https://dblp.org/rec/journals/corr/abs-1905-09100.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@misc{speculating-x86,
+  author = {Can B\"ol\"uk},
+  title = {Speculating the entire x86-64 Instruction Set In Seconds with This One Weird Trick},
+  year = {2021},
+  month = {March},
+  howpublished = {https://blog.can.ac/2021/03/22/speculating-x86-64-isa-with-one-weird-trick/},
+}
+
+@article{bulck:lvi,
+  title={{LVI}: Hijacking Transient Execution through Microarchitectural Load Value Injection},
+  author={Jo Van Bulck and Daniel Moghimi and Michael Schwarz and Moritz Lipp and Marina Minkin and Daniel Genkin and Yuval Yarom and Berk Sunar and Daniel Gruss and Frank Piessens},
+  journal={2020 IEEE Symposium on Security and Privacy (SP)},
+  year={2020},
+  pages={54-72}
+}
+
+@misc{horn:speculative-store-bypass,
+  author = {Jann Horn},
+  title={Speculative execution, variant 4: speculative store bypass},
+  year={2018},
+  month={February},
+  howpublished={\url{https://bugs.chromium.org/p/project-zero/issues/detail?id=1528}}
+}
+
+@misc{carruth:slh,
+  author={Chandler Carruth},
+  title={Speculative load hardening},
+  year={2018},
+  howpublished={\url{https://llvm.org/docs/SpeculativeLoadHardening.html}}
+}
+@inproceedings{narayan:swivel,
+  title={Swivel: Hardening WebAssembly against Spectre},
+  author={Shravan Narayan and Craig Disselkoen and Daniel Moghimi and Sunjay Cauligi and Evan Johnson and Zhao Gang and Anjo Vahldiek-Oberwagner and Ravi Sahita and Hovav Shacham and Dean M. Tullsen and Deian Stefan},
+  booktitle={USENIX Security Symposium},
+  year={2021}
+}
+@misc{webkit:spectre-meltdown,
+  title={What Spectre and Meltdown Mean For WebKit},
+  author={Filip Pizlo},
+  year={2018},
+  howpublished={\url{https://webkit.org/blog/8048/what-spectre-and-meltdown-mean-for-webkit/}}
+}
+@inproceedings {reis:site-isolation,
+  author = {Charles Reis and Alexander Moshchuk and Nasko Oskov},
+  title = {Site Isolation: Process Separation for Web Sites within the Browser},
+  booktitle = {28th {USENIX} Security Symposium ({USENIX} Security 19)},
+  year = {2019},
+  isbn = {978-1-939133-06-9},
+  address = {Santa Clara, CA},
+  pages = {1661--1678},
+  url = {https://www.usenix.org/conference/usenixsecurity19/presentation/reis},
+  publisher = {{USENIX} Association},
+  month = aug,
+}
+@misc{mozilla:timer-precision,
+  author = {Luke Wagner},
+  title={Mitigations landing for new class of timing attack },
+  year={2018},
+  howpublished={\url{https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/}}
+}
+@misc{intel:affected-processors,
+  author = {Intel, Inc.},
+  title = {Affected Processors: Transient Execution Attacks \& Related Security Issues by {CPU}},
+  year={2021},
+  howpublished={\url{https://software.intel.com/content/www/us/en/develop/topics/software-security-guidance/processors-affected-consolidated-product-cpu-model.html}}
+}
+@inproceedings {weber:osiris,
+  author = {Daniel Weber and Ahmad Ibrahim and Hamed Nemati and Michael Schwarz and Christian Rossow},
+  title = {Osiris: Automated Discovery of Microarchitectural Side Channels},
+  booktitle = {30th {USENIX} Security Symposium ({USENIX} Security 21)},
+  year = {2021},
+  isbn = {978-1-939133-24-3},
+  pages = {1415--1432},
+  url = {https://www.usenix.org/conference/usenixsecurity21/presentation/weber},
+  publisher = {{USENIX} Association},
+  month = aug,
+}
+@inproceedings{bhattacharyya:smotherspectre,
+  author = {Bhattacharyya, Atri and Sandulescu, Alexandra and Neugschwandtner, Matthias and Sorniotti, Alessandro and Falsafi, Babak and Payer, Mathias and Kurmus, Anil},
+  title = {SMoTherSpectre: Exploiting Speculative Execution through Port Contention},
+  year = {2019},
+  isbn = {9781450367479},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3319535.3363194},
+  doi = {10.1145/3319535.3363194},
+  booktitle = {Proceedings of the 2019 ACM SIGSAC Conference on Computer and Communications Security},
+  pages = {785–800},
+  numpages = {16},
+  keywords = {speculative execution, attack, microarchitecture, simultaneous multithreading, side-channel},
+  location = {London, United Kingdom},
+  series = {CCS '19}
+}
+@INPROCEEDINGS{chen:sgxspectre,
+  author={Chen, Guoxing and Chen, Sanchuan and Xiao, Yuan and Zhang, Yinqian and Lin, Zhiqiang and Lai, Ten H.},
+  booktitle={2019 IEEE European Symposium on Security and Privacy (EuroS P)},
+  title={{SgxPectre}: Stealing Intel Secrets from SGX Enclaves Via Speculative Execution},
+  year={2019},
+  pages={142-157},
+  doi={10.1109/EuroSP.2019.00020}
+  }
+@inproceedings{koruyeh:spectrersb,
+  author = {Koruyeh, Esmaeil Mohammadian and Khasawneh, Khaled N. and Song, Chengyu and Abu-Ghazaleh, Nael},
+  title = {Spectre Returns! Speculation Attacks Using the Return Stack Buffer},
+  year = {2018},
+  publisher = {USENIX Association},
+  address = {USA},
+  booktitle = {Proceedings of the 12th USENIX Conference on Offensive Technologies},
+  pages = {3},
+  numpages = {1},
+  location = {Baltimore, MD, USA},
+  series = {WOOT'18}
+}
+@article{stecklina:lazyfp,
+  author    = {Julian Stecklina and
+               Thomas Prescher},
+  title     = {LazyFP: Leaking {FPU} Register State using Microarchitectural Side-Channels},
+  journal   = {CoRR},
+  volume    = {abs/1806.07480},
+  year      = {2018},
+  url       = {http://arxiv.org/abs/1806.07480},
+  eprinttype = {arXiv},
+  eprint    = {1806.07480},
+  timestamp = {Mon, 13 Aug 2018 16:47:07 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1806-07480.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+@article{schaik:cacheout,
+  author    = {Stephan van Schaik and
+               Marina Minkin and
+               Andrew Kwong and
+               Daniel Genkin and
+               Yuval Yarom},
+  title     = {{CacheOut}: Leaking Data on Intel CPUs via Cache Evictions},
+  journal   = {CoRR},
+  volume    = {abs/2006.13353},
+  year      = {2020},
+  url       = {https://arxiv.org/abs/2006.13353},
+  eprinttype = {arXiv},
+  eprint    = {2006.13353},
+  timestamp = {Wed, 01 Jul 2020 15:21:23 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-2006-13353.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{weisse:foreshadow-ng,
+  title={{Foreshadow-NG}: Breaking the Virtual Memory Abstraction with Transient Out-of-Order Execution},
+  author={Weisse, Ofir and Van Bulck, Jo and Minkin, Marina and  Genkin, Daniel and Kasikci, Baris and
+              Piessens, Frank and Silberstein, Mark and Strackx, Raoul and Wenisch, Thomas F. and Yarom, Yuval},
+  journal={Technical report},
+  year={2018},
+}
+@inproceedings{ainsworth:muontrap,
+  author = {Ainsworth, Sam and Jones, Timothy M.},
+  title = {MuonTrap: Preventing Cross-Domain Spectre-like Attacks by Capturing Speculative State},
+  year = {2020},
+  isbn = {9781728146614},
+  publisher = {IEEE Press},
+  url = {https://doi.org/10.1109/ISCA45697.2020.00022},
+  doi = {10.1109/ISCA45697.2020.00022},
+  booktitle = {Proceedings of the ACM/IEEE 47th Annual International Symposium on Computer Architecture},
+  pages = {132–144},
+  numpages = {13},
+  keywords = {spectre, microarchitecture, hardware security, speculative execution},
+  location = {Virtual Event},
+  series = {ISCA '20}
+}
+@INPROCEEDINGS{yu:sdo,
+  author={Yu, Jiyong and Mantri, Namrata and Torrellas, Josep and Morrison, Adam and Fletcher, Christopher W.},
+  booktitle={2020 ACM/IEEE 47th Annual International Symposium on Computer Architecture (ISCA)},
+  title={Speculative Data-Oblivious Execution: Mobilizing Safe Prediction For Safe and Efficient Speculative Execution},
+  year={2020},
+  volume={},
+  number={},
+  pages={707-720},
+  doi={10.1109/ISCA45697.2020.00064}
+}
+@inproceedings {canella:survey,
+author = {Claudio Canella and Jo Van Bulck and Michael Schwarz and Moritz Lipp and Benjamin von Berg and Philipp Ortner and Frank Piessens and Dmitry Evtyushkin and Daniel Gruss},
+title = {A Systematic Evaluation of Transient Execution Attacks and Defenses},
+booktitle = {28th {USENIX} Security Symposium ({USENIX} Security 19)},
+year = {2019},
+isbn = {978-1-939133-06-9},
+address = {Santa Clara, CA},
+pages = {249--266},
+url = {https://www.usenix.org/conference/usenixsecurity19/presentation/canella},
+publisher = {{USENIX} Association},
+month = aug,
+}
+@article{xiong:survey,
+  author = {Xiong, Wenjie and Szefer, Jakub},
+  title = {Survey of Transient Execution Attacks and Their Mitigations},
+  year = {2021},
+  issue_date = {June 2021},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  volume = {54},
+  number = {3},
+  issn = {0360-0300},
+  url = {https://doi.org/10.1145/3442479},
+  doi = {10.1145/3442479},
+  journal = {ACM Comput. Surv.},
+  month = may,
+  articleno = {54},
+  numpages = {36},
+  keywords = {timing channels, secure processor architectures, Transient execution, speculative execution, covert channels}
+}
+@misc{lutomirski:lazyfp-perf,
+  author = {Andy Lutomirski},
+  year = {2016},
+  title = {[PATCH] x86/fpu: Hard-disable lazy fpu mode},
+  howpublished = {\url{https://lore.kernel.org/lkml/CALCETrV9rXJOgdBY9Wyardo0NETA1meCEM_C4-e+SYsZAoUU7A@mail.gmail.com}}
+}
+@INPROCEEDINGS{prout:measuring-spectre-meltdown,
+  author={Prout, Andrew and Arcand, William and Bestor, David and Bergeron, Bill and Byun, Chansup and Gadepally, Vijay and Houle, Michael and Hubbell, Matthew and Jones, Michael and Klein, Anna and Michaleas, Peter and Milechin, Lauren and Mullen, Julie and Rosa, Antonio and Samsi, Siddharth and Yee, Charles and Reuther, Albert and Kepner, Jeremy},
+  booktitle={2018 IEEE High Performance extreme Computing Conference (HPEC)},
+  title={Measuring the Impact of Spectre and Meltdown},
+  year={2018},
+  pages={1-5},
+  doi={10.1109/HPEC.2018.8547554}
+}
+@article{nikolay:meltdown-spectre-performance,
+  author    = {Nikolay A. Simakov and
+               Martins D. Innus and
+               Matthew D. Jones and
+               Joseph P. White and
+               Steven M. Gallo and
+               Robert L. DeLeon and
+               Thomas R. Furlani},
+  title     = {Effect of Meltdown and Spectre Patches on the Performance of {HPC}
+               Applications},
+  journal   = {CoRR},
+  volume    = {abs/1801.04329},
+  year      = {2018},
+  url       = {http://arxiv.org/abs/1801.04329},
+  eprinttype = {arXiv},
+  eprint    = {1801.04329},
+  timestamp = {Mon, 13 Aug 2018 16:47:49 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1801-04329.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+@misc{linus:ibrs-rant,
+  author = {Linus Torvalds},
+  title = {Re: Create macros to restrict/unrestrict Indirect Branch Speculation},
+  howpublished={\url{https://lkml.org/lkml/2018/1/21/192}},
+  year = {2018},
+}
+@misc{gregg:kpti-perfromance,
+  author = {Brendan Gregg},
+  title = {{KPTI}/{KAISER} Meltdown Initial Performance Regressions},
+  howpublished={\url{https://www.brendangregg.com/blog/2018-02-09/kpti-kaiser-meltdown-performance.html}},
+  year = {2018}
+}
+@misc{larabel:perf-zombieload,
+  author = {Michael Larabel},
+  title = {The Performance Impact Of {MDS} / {Zombieload} Plus The Overall Cost Now Of {Spectre}/{Meltdown}/{L1TF}/{MDS}},
+  howpublished={\url{https://www.phoronix.com/scan.php?page=article&item=mds-zombieload-mit}},
+  year = {2019}
+}
+
+@inproceedings{intelht,
+  author    = {Jun Nakajima and
+               Venkatesh Pallipadi},
+  title     = {Enhancements for Hyper-Threading Technology in the Operating System:
+               Seeking the Optimal Scheduling},
+  booktitle = {Proceedings of the Second Workshop on Industrial Experiences with
+               Systems Software, {WIESS} 2002, December 8, 2002, Boston, MA, {USA}},
+  pages     = {25--38},
+  publisher = {{USENIX}},
+  year      = {2002},
+}
+
+@misc{google:octane2, 
+  title = {Octane 2},
+  author = {Google},
+  howpublished = {\url{https://developers.google.com/octane/benchmark}},
+  year = {2020}
 }

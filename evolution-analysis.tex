@@ -1,0 +1,186 @@
+
+\begin{figure}[h]
+\begin{lstlisting}
+void victim_target() {
+  int c = 12345 / 6789;
+}
+void nop_target() {
+  // do nothing
+}
+
+void(*target)();
+
+void test() {
+  // configure performance counter to measure
+  // whether the divider is active
+  configure_pmc(ARITH_DIVIDER_ACTIVE);
+
+  // train the branch target buffer
+  target = victim_target;
+  for (int i = 0; i < 1024; i++)
+    divide_happened();
+
+  // potentially overwrite the entry
+  ...
+
+  // measure whether the trained entry is jumped
+  // to speculatively
+  target = nop_target;
+  if (divide_happened())
+    printf("victim_target ran speculatively!");
+}
+
+bool divide_happened() {
+  // fill branch history buffer
+  for (int i = 0; i < 128; i++)
+    ;
+
+  // flush branch target from cache
+  clflush(target);
+
+  // read performance counter
+  int start = rdpmc();
+
+  // perform the indirect branch
+  (*target)();
+
+  // see whether performance counter changed
+  return rdpmc() > start;
+}\end{lstlisting}
+\caption{Sketch of our approach. The \texttt{test} function prints whether it was able to poison the branch target buffer to route speculative execution to \texttt{victim\_target}.}
+\label{fig:spectre2-sample}
+\end{figure}
+
+\begin{table*}[ht]
+    \begin{tabular}{ clccccc } 
+      && \multicolumn{3}{c}{\textbf{With intervening system call}} & \multicolumn{2}{c}{\textbf{No system call}} \\
+      \textbf{Vendor} & \textbf{CPU} & user$\rightarrow$kernel & user$\rightarrow$user & kernel$\rightarrow$kernel & user$\rightarrow$user & kernel$\rightarrow$kernel \\ \hline 
+      \multirow{5}{*}{Intel} & Broadwell           & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+                             & Skylake Client    & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+                             & Cascade Lake        &            & \checkmark & \checkmark & \checkmark & \checkmark \\ 
+                             & Ice Lake Client   &            & \checkmark & \checkmark & \checkmark & \checkmark \\ 
+                             & Ice Lake Server   &            & \checkmark & \checkmark & \checkmark & \checkmark \\ \hline
+      \multirow{2}{*}{AMD}   & Zen 2           & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+                             & Zen 3         &  &  &  &  & \\ \hline
+    \end{tabular}
+    \caption{ Whether the processor will speculatively execute an indirect branch in the given configuration when IBRS is disabled.
+              A checkmark in column X$\rightarrow$Y indicates that training the branch target buffer in mode X is able
+              to control the target of a subsequent victim indirect branch in mode Y, either with or without an intervening \texttt{syscall} and/or \texttt{sysret} instruction between them.}
+    \label{table:btb-no-ibrs}
+  \end{table*}
+  
+  \begin{table*}[ht]
+    \begin{tabular}{ clccccc } 
+      && \multicolumn{3}{c}{\textbf{With intervening system call}} & \multicolumn{2}{c}{\textbf{No system call}} \\
+      \textbf{Vendor} & \textbf{CPU} & user$\rightarrow$kernel & user$\rightarrow$user & kernel$\rightarrow$kernel & user$\rightarrow$user & kernel$\rightarrow$kernel \\ \hline 
+      \multirow{5}{*}{Intel} & Broadwell           & & & & & \\
+                             & Skylake Client   & & & & & \\
+                             & Cascade Lake      &            & \checkmark & \checkmark & \checkmark & \checkmark \\ 
+                             & Ice Lake Client   &            & \checkmark &             & \checkmark &  \\ 
+                             & Ice Lake Server   &            & \checkmark & \checkmark  & \checkmark & \checkmark \\ \hline
+      \multirow{2}{*}{AMD}   & Zen 2           & & & & & \\
+                             & Zen 3         & & & & & \\ \hline
+    \end{tabular}
+    \caption{ Same as Table~\ref{table:btb-no-ibrs} but with IBRS \textit{enabled}.
+              IBRS always prevents problematic cases like user$\rightarrow$kernel, but on many processors blocks all speculation including predicting the target of userspace indirect branches based on prior branches done by the same process (user$\rightarrow$user).
+    }
+    \label{table:btb-ibrs}
+  \end{table*}
+  
+\section{Analysis of Hardware Spectre V2 Mitigations}
+\label{s:analysis}
+
+For nearly all the attacks we've looked at so far, either the mitigation approach has remained the same across all the processor generations we've studied, or it has gone from an expensive software mitigation to a hardware fix with no measurable cost at all.
+Spectre V2 notably does not follow this trajectory.
+It has an array of hardware and software mitigations, yet remains a non-trivial expense on every CPU we've tested.
+In this section we attempt to understand under which conditions the
+Branch Target Buffer is used to speculatively execute instructions and when not.
+
+
+\subsection{Measuring Speculation}
+
+To understand when CPUs speculatively execute instructions, we need a
+method to determine what instructions are being speculatively executed
+by the CPU.  Bölük~\cite{speculating-x86} describes a technique using
+performance counters to determine whether a processor starts
+speculatively executing at a given address, which we adopt to probe
+the behavior of the Branch Target Buffer, as we describe next.
+
+% \fk{is the point of this paragraph to say that every processor has
+%   performance counters for division operations, while not all
+%   processors have dedicated performance counters for mispredicted
+%   indirect branches? if so we should just  say that}
+The performance counters are specific to an individual generation of CPU and provide detailed information about microarchitectural events.
+All our processors have a performance counter to measure the number of cycles that the divider is active, and some also have a dedicated performance counter to indicate the number of mispredicted indirect branches.
+By reading one of these counters before and after a block of instructions, we can tell whether executing that code triggered any of the relevant operations.
+
+Figure~\ref{fig:spectre2-sample} sketches out how we use this method to know whether code at a specific target location was executed speculatively.
+We execute indirect branches that may potentially be mispredicted as targeting a specially constructed landing pad, and see whether we measure any use of the divider corresponding to executing instructions at landing pad.
+Care has to be taken to ensure no divide instructions are executed by the committed execution trace.
+
+Interestingly, we sometimes observed mispredicted indirect branches without any divide instructions being performed, which we interpret as the processor speculatively executing instructions at a different location than the one we attempted to poison the branch target buffer with.
+For this reason, we focus on the performance counter for cycles with the divider active even when both are available.
+
+% This in turn tells us tell whether which entries are in the branch target buffer.
+
+% Directly using that counter is more precise than counting the number of divide operations.
+
+Prior work discovered that for a Spectre V2 attack, only some bits of the virtual and physical addresses have to match between the victim and attacker.
+However, to maximize the chance of success, we ensure all 64 bits match by sharing the same page of memory between the victim and attacker.
+
+\subsection{Results}
+
+Tables~\ref{table:btb-no-ibrs} and \ref{table:btb-ibrs} show the results produced using this methodology.
+The columns indicate the mode that the attacker and victim run in
+respectively (e.g., user$\rightarrow$kernel is the classic
+configuration of a user-space attacker trying to misdirect a victim running in kernel space).
+We also indicate the presence of an intervening \texttt{syscall} instruction.
+
+Not shown in that figure, we also attempted to run the attacker in kernel mode and the victim in user mode.
+This is not reflective of a real world attack scenario, but it revealed that the same attacks processors vulnerable to the user$\rightarrow$kernel version were vulnerable to a kernel$\rightarrow$user attack.
+
+One final note is that we did not manage to poison the branch target buffer at all on our Zen 2 processor.
+We suspect this isn't because it is immune to the attack, but rather due to some change to the Branch History Buffer (used to compute the index for the branch target buffer) or another implementation detail that experiments did not account for.
+
+\subsubsection{Indirect Branch Restricted Speculation}
+
+Recall that the original version of Indirect Branch Restricted Speculation (IBRS) was the first mitigation proposed for Spectre V2 but is not used by default on any production operating system because it requires an expensive write to a model-specific register on every entry into the kernel.
+
+According to Intel documentation, this mitigation prevents indirect branches executed from less privileged modes from impacting the predicted destination of indirect branches in more privileged modes.
+We experimentally validated this claim by poisoning the branch target buffer and then seeing whether the processor would speculatively jump to the programmed branch destination.
+Our measurements indicated that toggling this mitigation caused the
+user space code to be unable to redirect kernel execution.
+However, subsequent experiments (replicated in
+Table~\ref{table:btb-ibrs}) revealed that IBRS was disabling all
+indirect branch prediction both in user space and kernel space.
+Not having this prediction even for user processes incurs a high performance cost.
+
+\subsubsection{Enhanced IBRS (eIBRS)}
+
+Enhanced IBRS provides the same guarantees as the original IBRS but doesn't require an MSR write on every kernel entry.
+Given the lackluster performance of IBRS compared to retpolines, that may not seem promising, but the presence of this feature signals more serious mitigations built into the hardware.
+In particular, eIBRS does not disrupt indirect branch prediction at the same privilege level.
+When it is available, Linux by default uses eIBRS instead of retpolines.
+
+As seen in Table~\ref{table:btb-ibrs}, Cascade Lake and the two Ice Lake
+processors (the microarchictures that support eIBRS) both do indirect branch prediction only based on prior indirect branches executed in the same privilege mode.
+We speculate this is achieved by using a branch target buffer that is either partitioned or tagged using a bit indicating the current privilege mode.
+
+When running with eIBRS enabled, we have observed that kernel entries (caused by page faults, the \texttt{syscall} instruction, etc.) having bimodal performance.
+Most times they take a similar number of cycles (on the order of 70 cycles), but one in every 8 to 20 or so entries they take an additional 210 cycles.
+On the same processor, when running without eIBRS the time is always 70 cycles.
+
+We have been unable to fully determine what is causing this behavior, but a few patterns have emerged.
+Under some conditions, the slow system calls will happen exactly every eight times, meanwhile at other times the processor will go long stretches without any slow syscalls.
+Additionally, we have sometimes observed behavior consistent with the branch target buffer being flushed only during slow kernel entries: poisoning the branch target buffer in the kernel prior to a system call causes misprediction of subsequent indirect branches in kernel mode only if the intervening kernel entry was fast.
+Monitoring performance counters reveal that slow system calls involve both executing more micro ops and more cycles spent stalling, but do not provide a clear hint of what those additional micro ops are doing.
+
+\subsection{Takeaways}
+The original IBRS design not only added substantial overhead to every kernel entry, it also blocked indirect branch speculation everywhere.
+eIBRS improves on this by seemingly partitioning or tagging the branch target buffer based on the CPU privilege mode.
+
+Partitioning / tagging the branch target buffer however is not a complete mitigation for Spectre V2.
+User processes still need their own defenses and even within the kernel indirect branches executed by the operating system could be used to mistrain the branch target buffer to misdirect subsequent operating system indirect branches.
+
+We suspect that the designers of eIBRS may have been aware of this risk and taken precautions against it.
+The documentation for eIBRS doesn't make any promises, but the slow kernel entries suggest that additional work is happening in connection with the feature.
