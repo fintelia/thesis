@@ -3,17 +3,19 @@ Side channel attacks leak information between isolation domains outside of the n
 Several years ago a new class of side channel attacks was discovered impacting CPUs from all major vendors~\cite{lipp:meltdown, kocher:spectre}.
 These attacks -- termed transient execution attacks -- exploit details of how modern processors use speculative execution to run more quickly. 
 
-Transient execution attacks represent a challenge for operating system developers because a key security responsibility for operating systems is to maintain isolation.
+Transient execution attacks represent a concern for operating system developers because a key security responsibility for operating systems is to maintain isolation.
 In particular, multiple processes running on the same machine must not inadvertently leak information between one another.
-Production operating systems have deployed a range of software techniques devised to mitigate the impact of these attacks, but unfortunately they present significant tradeoffs between security and performance.
+Production operating systems and other software vendors have deployed a range of software techniques devised to mitigate the impact of these attacks, but unfortunately they introduce significant performance trade offs.
 
+The overhead caused by these mitigations is present both on the many hundreds of millions vulnerable processors still in use from before the discovery of the attacks, and also at least to some degree on all major commercial CPUs released after their discovery.
+This work both attempts to quantify how this overhead has evolved over subsequent generations of processors and presents an operating system design to reduce OS level overheads on the CPUs where they are most severe.  
 
-Many hundreds of millions of vulnerable computer processors are currently in use, so simply replacing them all isn’t by itself a viable solution.
-Worse still, computer architectural approaches to solve transient execution attacks remains an open area of research, except on the simplest of processors.
+% Many hundreds of millions of vulnerable computer processors are currently in use, so simply replacing them all isn’t by itself a viable solution.
+% Worse still, computer architectural approaches to solve transient execution attacks remains an open area of research, except on the simplest of processors.
 
-Nonetheless, generations of processors designed after the discovery of transient execution attacks have improvements that make them inherently less susceptible to attack.
-It is desirable to understand how this was achieved yet little has been published on exactly what changes were made.
-The focus of this thesis is on understanding and reducing the impact of mitigations on performance.
+% Nonetheless, generations of processors designed after the discovery of transient execution attacks have improvements that make them inherently less susceptible to attack.
+% It is desirable to understand how this was achieved yet little has been published on exactly what changes were made.
+% The focus of this thesis is on understanding and reducing the impact of mitigations on performance.
 
 \section{Transient Execution Attacks}
 \subsection{Speculative Execution}
@@ -41,7 +43,8 @@ Spectre V1 was one of the earliest attacks discovered and leaks information betw
 The attack relies on a specific sequence of instructions (a ``gadget'') to be located in the victim's code region.
 The gadget consists of a bounds check followed by two array accesses as shown in Figure~\ref{fig:spectre-code}, in which the index value can be controlled by the adversary.
 
-To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes which will train the CPU branch predictor that the branch is usually taken.
+To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes.
+This will train the CPU branch predictor that the branch is usually taken.
 Then, the attackers forces the array size to be evicted from the CPU cache and calls the gadget with an out of bounds index.
 
 When execution reaches the bounds check, the processor will initiate a load to read the array size.
@@ -78,12 +81,19 @@ For instance, the KAISER patches to mitigate Meltdown cause system calls to be u
 The goal of this thesis is to gain a detailed understand of how much cost the various mitigations incur across vendors and generations of processors, and to suggest ways to lessen the impact where it is most substantial.
 
 \section{Contributions}
-This thesis has two major contributions
-\begin{itemize}
-\item Across successive generations of processors designed both before and after the publication of these attacks, we quantify the performance cost of hardware mitigations and reverse engineer microarchitectural changes made in response to the attacks. The insights from this analysis indicate that the most expensive mitigations are no longer required, and that while new attacks continue to be discovered, the overall performance impact of these new attacks has so far been significantly less severe.
+The first contribution of this work is quantify the performance cost of hardware mitigations changes made in response to the attacks across successive generations of processors designed both before and after the publication of these attacks.
+On workloads that stress the Linux kernel interface (which have received the most attention) there have been substantial improvements with slowdowns on LEBench going from over 30\% to less than 3\%.
+By contrast, the overhead for JavaScript applications running inside
+Firefox are impacted by an almost entirely different set of
+mitigations.
+On Octane 2, overhead has remained roughly flat at 20\%.
+The overhead of software mitigations hasn't changed much,
+but hardware changes that removed the need for a
+few of the most expensive mitigations have significantly reduced overhead on some workloads.
 
-\item For processors which currently require expensive software mitigations, we present Ward, an operating system architecture which achieves similar security guarantees to those mitigations but incurs substantially lower overhead. Ward particularly identifies KPTI~\cite{linux:kpti} (Linux's chosen defense against Meltdown) as a key source of overhead.
-\end{itemize}
+% The insights from this analysis indicate that the most expensive mitigations are no longer required, and that while new attacks continue to be discovered, the overall performance impact of these new attacks has so far been significantly less severe.
+
+Secondly, for processors which currently require expensive operating system level software mitigations, we present Ward, an operating system architecture which achieves similar security guarantees to traditional OSes equiped with those mitigations but incurs substantially lower overhead. Ward particularly identifies KPTI~\cite{linux:kpti} (Linux's chosen defense against Meltdown) as a key source of overhead.
 
 \section{Evolution of Mitigation Cost}
 We survey the cost of mitigations across multiple processor generations and across the two main vendors for x86 processors.
@@ -91,12 +101,12 @@ This enables us to understand both which costs are specific only to CPUs from a 
 
 First, we run end-to-end benchmarks on each system measuring operating system and web-browser workloads.
 This is enough to derive some high level trends and get a sense for the cost of the configurable mitigations on each system.
-Unfortunately, our test systems vary on many dimensions unrelated to transient execution attacks (like clock speed and cache size) which limit what meaningful performance comparisons we can make using coarse benchmarks.
+Our test systems vary on many dimensions unrelated to transient execution attacks (like clock speed and cache size) so our direct comparisons primary focus on relative differences between configurations of the same system.
 
 The bulk of our work is a detailed breakdown of individual attacks where we can investigate precise cycle costs.
-For each attack, we attempt to measure execution time of the instruction or instruction sequence used to mitigate it on each of our impacted systems.
-Our experiments show substantial variations between processors in how long individual mitigations take, and demonstrate that some of the most costly are completed avoided on the newest CPUs. 
-The outcome of this investigation suggests that overheads to prevent transient execution attacks have significantly declined.
+For each mitigation identified by the end-to-end benchmarks, we attempt to measure execution time of the associated instruction or instruction sequence on each of our impacted systems.
+Our experiments show meaningful variations between processors in how long individual mitigations take, and demonstrate that some of the most costly are completed avoided on the newest CPUs. 
+The outcome of this investigation explains why overheads to prevent transient execution attacks have significantly declined for some workloads.
 
 \section{Ward}
 Ward is a novel operating system architecture which is resilient to transient execution attacks, yet does not require the expensive software mitigations that existing operating systems deploy. 
@@ -109,7 +119,8 @@ Notably when executing in a Q-domain, Ward is able to avoid many of the expensiv
 And since Ward is able to handle many system calls and traps entirely in the Q-domain, it can achieve considerably better performance on many workloads compared to conventional operating system designs.
 
 \section{Outline}
-The next chapter starts with an end-to-end performance evaluation, and then goes into detail on each major attack describing both background on how it works as well as analyzing its impact on each evaluated system.
+The next chapter presents an overview of related work in this space.
+We follow with an end-to-end performance evaluation, and then go into detail on each major attack describing both background on how it works as well as analyzing its impact on each evaluated system.
 We then proceed to introduce the Unmapped Speculation Contract which encapsulates some security guarantees that we believe even old/vulnerable processors are able to provide.
 Next is a description of the Ward kernel design and an evaluation of how it performs.
-We follow up with some discussion, an overview of related work, and then conclude.
+We follow up with some discussion, a few suggestions of possible future work, and then conclude.
