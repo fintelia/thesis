@@ -44,7 +44,7 @@
 }
 
 \date{\vspace{-\baselineskip}}
-\title{\Large \bf Thesis }
+\title{\bf PhD Thesis \\ \large Performance Implications of Mitigating Transient Execution Side Channel Attacks}
 \author{ {\rm Jonathan Behrens} \\ \textit{MIT} }
 \maketitle
 
@@ -53,27 +53,34 @@
 \chapter{Introduction}
 \input{intro.tex}
 
+\chapter{Related Work}
+\input{evolution-related}
+\input{ward-related}
+
 \chapter{Performance Analysis}
 \input{evolution-intro}
-\input{evolution-related}
 \input{evolution-background}
 \input{evolution-benchmarks}
 \input{evolution-eval}
 \input{evolution-analysis}
 \input{evolution-discussion}
 
-\chapter{Unmapped Speculation Contract}
+\chapter{Ward}
+
 \input{ward-intro}
 \input{ward-motivation}
 \input{ward-approach}
-\chapter{Ward}
+
 \input{ward-design}
 \input{ward-impl}
 \input{ward-eval}
-\chapter{Discussion}
 \input{ward-discussion}
-\chapter{Related Work}
-\input{ward-related}
+
+\chapter{Discussion}
+
+\chapter{Future Work}
+
+
 \chapter{Conclusion}
 \input{ward-concl}
 \input{evolution-concl}

@@ -1,38 +1,38 @@
 %\section{Introduction}
 
-Over the last two years, transient execution has emerged as a
-powerful new side-channel attack technique.  Vulnerabilities have
-proliferated~\cite{sok:transient,hill:survey}, with examples now including Meltdown~\cite{lipp:meltdown},
-Spectre~\cite{kocher:spectre}, L1 Terminal Fault~\cite{bulck:foreshadow}, RIDL~\cite{schaik:ridl},
-Fallout~\cite{canella:fallout}, ZombieLoad~\cite{schwarz:zombieload},
-CrossTalk~\cite{ragab:crosstalk}, and SGAxe~\cite{sgaxe}.  In contrast
-with conventional timing-based side-channel attacks~\cite{kocher:timing},
-where the victim must access its data in a specific pattern in order
-to leak it, transient execution attacks are more serious because they
-often allow an attacker to precisely control which memory locations are
-leaked, including memory that might not be accessed on the committed
-execution path.  This is of particular concern to OS kernels, which have
-access to all of physical memory, and therefore could leak data from any
-process through transient execution bugs.  In a public cloud,
-where it is common for mutually distrustful tenants to share
-a single machine~\cite{borg, cpi2}, the threat of transient execution
-is especially concerning.
+% Over the last two years, transient execution has emerged as a
+% powerful new side-channel attack technique.  Vulnerabilities have
+% proliferated~\cite{sok:transient,hill:survey}, with examples now including Meltdown~\cite{lipp:meltdown},
+% Spectre~\cite{kocher:spectre}, L1 Terminal Fault~\cite{bulck:foreshadow}, RIDL~\cite{schaik:ridl},
+% Fallout~\cite{canella:fallout}, ZombieLoad~\cite{schwarz:zombieload},
+% CrossTalk~\cite{ragab:crosstalk}, and SGAxe~\cite{sgaxe}.  In contrast
+% with conventional timing-based side-channel attacks~\cite{kocher:timing},
+% where the victim must access its data in a specific pattern in order
+% to leak it, transient execution attacks are more serious because they
+% often allow an attacker to precisely control which memory locations are
+% leaked, including memory that might not be accessed on the committed
+% execution path.  This is of particular concern to OS kernels, which have
+% access to all of physical memory, and therefore could leak data from any
+% process through transient execution bugs.  In a public cloud,
+% where it is common for mutually distrustful tenants to share
+% a single machine~\cite{borg, cpi2}, the threat of transient execution
+% is especially concerning.
 
-A key challenge in addressing transient execution attacks lies in
-minimizing the performance overheads.  CPU and OS designers have
-implemented a range of mitigations to defeat transient execution
-attacks, including state flushing, selectively preventing speculative
-execution, and removing observation channels~\cite{sok:transient}.
-These mitigations impose performance overheads (see
-\autoref{s:motivation}): some of the mitigations must be applied at
-each privilege mode transition (e.g., system call entry and exit), and
-some must be applied to all running code (e.g., retpolines for all
-indirect jumps).  In some cases, they are so expensive that OS vendors
-have decided to leave them disabled by default~\cite{apple_support,
-  microsoft_support}.  Recent processor designs have also incorporated
-mitigations into hardware, which also reduces performance compared to
-earlier processor designs that do not perform such hardware
-mitigations.
+% A key challenge in addressing transient execution attacks lies in
+% minimizing the performance overheads.  CPU and OS designers have
+% implemented a range of mitigations to defeat transient execution
+% attacks, including state flushing, selectively preventing speculative
+% execution, and removing observation channels~\cite{sok:transient}.
+% These mitigations impose performance overheads (see
+% \autoref{s:motivation}): some of the mitigations must be applied at
+% each privilege mode transition (e.g., system call entry and exit), and
+% some must be applied to all running code (e.g., retpolines for all
+% indirect jumps).  In some cases, they are so expensive that OS vendors
+% have decided to leave them disabled by default~\cite{apple_support,
+%   microsoft_support}.  Recent processor designs have also incorporated
+% mitigations into hardware, which also reduces performance compared to
+% earlier processor designs that do not perform such hardware
+% mitigations.
 
 %Linux has considered offering
 %an option to flush the entire L1 cache on context switch, to protect
@@ -43,9 +43,8 @@ mitigations.
 % Fallout cannot be fully mitigated without turning off hyperthreading,
 % reducing overall CPU performance by around 33\%.
 
-To address the above challenge, this paper proposes a new
-hardware/software contract, called the \emph{unmapped speculation
-contract}, or \contract{} for short.  \contract{} allows the OS kernel
+To address the severe performance overhead associated with OS level mitigations on older processors, we propose a new hardware/software contract, called the \emph{unmapped speculation contract}, or \contract{} for short.
+\contract{} allows the OS kernel
 to significantly reduce the overhead of mitigating a particular subset
 of transient execution attacks---namely, those that leak arbitrary
 memory contents.  The \contract{} says that physical memory that is

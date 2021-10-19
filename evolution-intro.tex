@@ -1,6 +1,6 @@
 \section{Introduction}
-Transient execution attacks are a class of side channel attacks that leak information across privilege domains using microarchitectural details of how processors are implemented.
-Spectre and Meltdown were the first---but far from only---of these attacks to be discovered.
+% Transient execution attacks are a class of side channel attacks that leak information across privilege domains using microarchitectural details of how processors are implemented.
+% Spectre and Meltdown were the first---but far from only---of these attacks to be discovered.
 
 From the end-user perspective, a significant concern from transient execution side channel attacks is the performance degradation they cause.
 This is because operating systems and applications have deployed mitigations to restore their previous security guarantees, but those same mitigations make systems slower.
@@ -23,15 +23,9 @@ The most expensive mitigations on the first workload stressing the operating sys
 By contrast, JavaScript sandboxing stresses a different set of mitigations which
 have substantial cost but none of which have been fixed through hardware changes.
 
-The primary contribution of this work is to draw attention to the
-performance critical areas for improving transient execution
-mitigations, driven by (1) an end-to-end survey of how mitigation
-costs have evolved over processor generations, and (2) detailed
-microbenchmarking of individual mitigations.  To analyze hardware
-mitigations for Spectre V2, the paper also contributes a new technique to measure
-speculation using ideas from Bölük~\cite{speculating-x86}.
+This chapter seeks to draw attention to the performance critical areas for improving transient execution mitigations, driven by (1) an end-to-end survey of how mitigation costs have evolved over processor generations, and (2) detailed microbenchmarking of individual mitigations.
+To analyze hardware mitigations for Spectre V2, we also contribute a new technique to measure speculation using ideas from Bölük~\cite{speculating-x86}.
 Our benchmarks and analysis code will be made available on GitHub.
-
 
 There are some limitations.
 Our evaluation does not consider a virtual machine workload, though in such workloads guest-hypervisor boundary crossings tend to be much less frequent than user-kernel boundary crossings so mitigation overheads should be correspondingly lower.
@@ -40,16 +34,16 @@ And also the conclusions we can draw are constrained by the lack of
 public details on how hardware mitigations are implemented.  Finally,
 new attacks may require new mitigations with their own overheads.
 
-The rest of the paper is organized as follows.  \autoref{s:related}
-relates this paper to previous work.  \autoref{s:background} describes
-transient-execution attacks and their mitigations from a performance
-perspective. \autoref{s:benchmarks} measures the penalty of
-mitigations on several end-to-end workloads. \autoref{s:eval} analyzes
-individual mitigations that have significant impact on end-to-end
-performance. \autoref{s:analysis} zooms in on Spectre V2 mitigations.
-\autoref{s:discussion} presents ideas for how to reduce the lingering
-performance impact of mitigations.  \autoref{s:concl} summarizes our
-conclusions.
+% The rest of the paper is organized as follows.  \autoref{s:related}
+% relates this paper to previous work.  \autoref{s:background} describes
+% transient-execution attacks and their mitigations from a performance
+% perspective. \autoref{s:benchmarks} measures the penalty of
+% mitigations on several end-to-end workloads. \autoref{s:eval} analyzes
+% individual mitigations that have significant impact on end-to-end
+% performance. \autoref{s:analysis} zooms in on Spectre V2 mitigations.
+% \autoref{s:discussion} presents ideas for how to reduce the lingering
+% performance impact of mitigations.  \autoref{s:concl} summarizes our
+% conclusions.
 
 
 % \subsection{Classifying attacks}

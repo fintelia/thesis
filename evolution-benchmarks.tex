@@ -15,12 +15,6 @@ The boundary between a hypervisor and its guest operating system is also notable
 In addition, we consider the case of a compute-intensive workload running within a single operating system process.
 That involves no protection boundary crossings, and thus measures only the impact of mitigations the operating system keeps enabled all the time.
 
-\begin{figure}[t]
-    \includegraphics[width=\columnwidth]{plots/lebench.pdf}
-    \caption{The overhead of mitigations on the LEBench benchmark suite which stresses the operating system interface.}
-    \label{fig:lebench}
-\end{figure}
-
 \subsection{Methodology}
 In the following benchmarks we evaluate across seven different CPU microarchitectures from two vendors.
 Considering different microarchictures enables us to observe design improvements between successive releases.
@@ -43,8 +37,14 @@ Since variability within runs frequently exceed the total overheads we are measu
 
 \subsection{LEBench}
 
+\begin{figure}[t]
+    \includegraphics[width=\columnwidth]{plots/lebench.pdf}
+    \caption{The overhead of mitigations on the LEBench benchmark suite which stresses the operating system interface.}
+    \label{fig:lebench}
+\end{figure}
 
-LEBench~\cite{ren:lebench} is a collection of microbenchmarks for measuring specific operating system operations.\footnote{We use the version of the LEBench benchmarks distributed with the \textsc{ward} system~\cite{behrens:ward}, which addresses a few issues with the original.}
+
+LEBench~\cite{ren:lebench} is a collection of microbenchmarks for measuring specific operating system operations.\footnote{We use the version of the LEBench benchmarks distributed with the \textsc{ward} system~\cite{behrens:ward} to align with experiments from elsewhere in this thesis.}
 In this experiment, we track the geometric mean of benchmarks from the suite.
 As seen in Figure~\ref{fig:lebench} the overhead has decreased sharply for newer processors:
 CPUs which incorporate hardware mitigations (for Intel) or from a vendor whose CPUs were not vulnerable to all attacks in the first place (AMD) exhibit substantially smaller overheads.
