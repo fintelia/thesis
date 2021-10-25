@@ -8,7 +8,7 @@ In particular, multiple processes running on the same machine must not inadverte
 Production operating systems and other software vendors have deployed a range of software techniques devised to mitigate the impact of these attacks, but unfortunately they introduce significant performance trade offs.
 
 The overhead caused by these mitigations is present on the many hundreds of millions vulnerable processors dating from before the discovery of the attacks, and also at least to some degree on all major commercial CPUs released after their discovery.
-This work both attempts to quantify how this overhead has evolved over subsequent generations of processors and presents an operating system design to reduce OS level overheads on the CPUs where they are most severe.  
+This thesis both attempts to quantify how this overhead has evolved over subsequent generations of processors and presents an operating system design to reduce OS level overheads on the CPUs where they are most severe.  
 
 % Many hundreds of millions of vulnerable computer processors are currently in use, so simply replacing them all isn’t by itself a viable solution.
 % Worse still, computer architectural approaches to solve transient execution attacks remains an open area of research, except on the simplest of processors.
@@ -75,13 +75,12 @@ Software and microcode approaches to preventing transient execution attacks are 
 For some attacks, straightforward architectural changes completely eliminate the vulnerability with almost no performance overhead and are already deployed in commercially available CPUs.
 For other attacks, performant hardware mitigations remain an active area of research~\cite{OISA, ConTExT}.
 
-\section{Motivation}
+\section{Motivation and Approach}
 Mitigations for transient execution attacks can introduce significant performance impacts.
 For instance, the KAISER patches to mitigate Meltdown cause system calls to be up to 8$\times$ slower, while flushing microarchitural buffers to avoid MDS can add thousands of cycles to every context switch.
 The goal of this thesis is to gain a detailed understand of how much cost the various mitigations incur across vendors and generations of processors, and to suggest ways to lessen the impact where it is most substantial.
 
-\section{Contributions}
-The first contribution of this work is quantify the performance cost of hardware mitigations changes made in response to the attacks across successive generations of processors designed both before and after the publication of these attacks.
+The first contribution of this thesis is quantify the performance cost of hardware mitigations changes made in response to the attacks across successive generations of processors designed both before and after the publication of these attacks.
 On workloads that stress the Linux kernel interface (which have received the most attention) there have been substantial improvements with slowdowns on LEBench going from over 30\% to less than 3\%.
 By contrast, the overhead for JavaScript applications running inside
 Firefox are impacted by an almost entirely different set of
@@ -101,7 +100,7 @@ This enables us to understand both which costs are specific only to CPUs from a 
 
 First, we run end-to-end benchmarks on each system measuring operating system and web-browser workloads.
 This is enough to derive some high level trends and get a sense for the cost of the configurable mitigations on each system.
-Our test systems vary on many dimensions unrelated to transient execution attacks (like clock speed and cache size) so our direct comparisons primary focus on relative differences between configurations of the same system.
+Our test systems vary on many dimensions unrelated to transient execution attacks (like core count, clock speed, and cache size) so our direct comparisons primary focus on relative differences between configurations of the same system.
 
 The bulk of our work is a detailed breakdown of individual attacks where we can investigate precise cycle costs.
 For each mitigation identified by the end-to-end benchmarks, we attempt to measure execution time of the associated instruction or instruction sequence on each of our impacted systems.
@@ -117,6 +116,14 @@ At any given point in time the processor is either executing in userspace, in a 
 
 Notably when executing in a Q-domain, Ward is able to avoid many of the expensive software mitigations that would ordinarily be required by a conventional OS when running in kernel mode on processors vulnerable to Spectre and Meltdown.
 And since Ward is able to handle many system calls and traps entirely in the Q-domain, it can achieve considerably better performance on many workloads compared to conventional operating system designs.
+
+\section{Contributions}
+
+\begin{itemize}
+\end{itemize}
+
+There are also several limitations.
+
 
 \section{Outline}
 The next chapter presents an overview of related work in this space.
