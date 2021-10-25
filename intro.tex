@@ -7,7 +7,7 @@ Transient execution attacks represent a concern for operating system developers 
 In particular, multiple processes running on the same machine must not inadvertently leak information between one another.
 Production operating systems and other software vendors have deployed a range of software techniques devised to mitigate the impact of these attacks, but unfortunately they introduce significant performance trade offs.
 
-The overhead caused by these mitigations is present both on the many hundreds of millions vulnerable processors still in use from before the discovery of the attacks, and also at least to some degree on all major commercial CPUs released after their discovery.
+The overhead caused by these mitigations is present on the many hundreds of millions vulnerable processors dating from before the discovery of the attacks, and also at least to some degree on all major commercial CPUs released after their discovery.
 This work both attempts to quantify how this overhead has evolved over subsequent generations of processors and presents an operating system design to reduce OS level overheads on the CPUs where they are most severe.  
 
 % Many hundreds of millions of vulnerable computer processors are currently in use, so simply replacing them all isn’t by itself a viable solution.
@@ -20,13 +20,13 @@ This work both attempts to quantify how this overhead has evolved over subsequen
 \section{Transient Execution Attacks}
 \subsection{Speculative Execution}
 Speculative execution is an optimization used in the design of modern processors to drastically improve their performance, by enabling them to do useful work during times when they would otherwise be stalled waiting to load information from RAM.
+When the CPU reaches a conditional branch instruction that it doesn't yet know whether will be taken or not, it predicts the outcome and then starts executing instructions that would follow.
+The prediction is based on prior executions of that same instructions and any other heuristics the processor may have.
 
-The way speculative execution works is that when the CPU reaches a conditional branch instruction that it doesn't yet know whether will be taken or not, it predicts the outcome based on prior executions of that same instruction and then continues running under the assumption that the guess was correct.
-Usually the outcome is that the branch was predicted correctly, and the speculatively executed instructions can be committed.
-
-When a branch is mispredicted the CPU rolls back the architecturally visible results of the instructions executed after the branch.
-In general when reverting transiently executed instructions, their microarchitural results -- like which inserting or evicting lines from the cache -- are not undone.
-Such microarchitural effects are the core of transient execution attacks.
+Usually the branch prediction is correct and the speculatively executed instructions can be committed.
+However, when the prediction is incorrect, the CPU rolls back the architecturally visible results of the instructions executed after the branch.
+In general when reverting transiently executed instructions, their microarchitural effects -- like inserting or evicting lines from the cache -- are not undone.
+Observing the  microarchitural effects of speculatively executed instructions is the core of transient execution attacks.
 
 \subsection{Example Attack}
 \begin{figure}[h]
@@ -41,7 +41,7 @@ if (index < array_size) {
 \end{figure}
 Spectre V1 was one of the earliest attacks discovered and leaks information between different processes, between a process and the operating system kernel, or between a sandbox and the code running within.
 The attack relies on a specific sequence of instructions (a ``gadget'') to be located in the victim's code region.
-The gadget consists of a bounds check followed by two array accesses as shown in Figure~\ref{fig:spectre-code}, in which the index value can be controlled by the adversary.
+The gadget consists of a bounds check followed by two array accesses as shown in Figure~\ref{fig:spectre-code}, for which the index value can be controlled by the adversary.
 
 To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes.
 This will train the CPU branch predictor that the branch is usually taken.
@@ -64,7 +64,7 @@ Finally, Microarchitural Data Sampling exploits the processor's forwarding logic
 \section{Mitigation Approaches}
 \subsection{Software}
 As the embargo period wound down on the original Meltdown and Spectre attacks, operating system vendors and processor makers hurriedly rolled out patches to mitigate these vulnerabilities.
-The patches came at a significant performance cost, as was widely commented on at the time. 
+The patches came at a significant performance cost. 
 
 These fixes took two forms.
 Hardware vendors released microcode patches for existing processors which modified behavior and added some new functionality to control speculative execution~\cite{intel:l1tf}.
@@ -109,7 +109,7 @@ Our experiments show meaningful variations between processors in how long indivi
 The outcome of this investigation explains why overheads to prevent transient execution attacks have significantly declined for some workloads.
 
 \section{Ward}
-Ward is a novel operating system architecture which is resilient to transient execution attacks, yet does not require the expensive software mitigations that existing operating systems deploy. 
+Ward is a novel operating system architecture which is resilient to transient execution attacks, yet avoids many of the expensive software mitigations that existing operating systems employ when running on older processors. 
 
 In Ward, the operating system kernel is divided into multiple domains.
 The K-domain includes all information accessible to the operation system, while each process has its own associated Q-domain consisting only of the userspace memory and kernel space data structures related to that one process.
@@ -121,6 +121,5 @@ And since Ward is able to handle many system calls and traps entirely in the Q-d
 \section{Outline}
 The next chapter presents an overview of related work in this space.
 We follow with an end-to-end performance evaluation, and then go into detail on each major attack describing both background on how it works as well as analyzing its impact on each evaluated system.
-We then proceed to introduce the Unmapped Speculation Contract which encapsulates some security guarantees that we believe even old/vulnerable processors are able to provide.
-Next is a description of the Ward kernel design and an evaluation of how it performs.
-We follow up with some discussion, a few suggestions of possible future work, and then conclude.
+We then proceed to introduce the Unmapped Speculation Contract which encapsulates some security guarantees that we believe even old/vulnerable processors are able to provide, and describe he Ward kernel design that is able to leverage it.
+We follow up with some discussion, some ideas for future work, and then conclude.
