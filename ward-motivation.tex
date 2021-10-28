@@ -6,7 +6,7 @@
     \includegraphics{results/bhw2_bhw3_overhead}
   \end{center}
 \vspace{-\baselineskip}
-\caption{Linux slowdown due to mitigations on \bench, for two generations of Intel CPUs: Skylake and Cascade Lake.}
+\caption{Linux slowdown due to mitigations on \bench, for two generations of Intel CPUs: Broadwell and Cascade Lake.}
 \label{fig:linuxslowdown}
 \end{figure*}
 
@@ -15,7 +15,7 @@
     \includegraphics{results/cascade_lake_regression}
   \end{center}
 \vspace{-\baselineskip}
-\caption{Performance regression on the newer Cascade Lake CPU, compared to the older Skylake CPU,
+\caption{Performance regression on the newer Cascade Lake CPU, compared to the older Broadwell CPU,
   for \bench on Linux, with all software-controllable mitigations disabled.}
 \label{fig:regression}
 \end{figure*}
@@ -46,8 +46,8 @@ and one where all are enabled. Figure~\ref{fig:linuxslowdown} shows
 the relative slowdown between the two configurations for 13 kernel
 operations of \bench that don't involve networking (i.e., without
 \texttt{send}, \texttt{recv}, \texttt{epoll}).  There are two sets of
-bars, representing two generations of Intel CPUs: the older Skylake,
-and the newer Cascade Lake.  On the older Skylake CPUs,
+bars, representing two generations of Intel CPUs: the older Broadwell,
+and the newer Cascade Lake.  On the older Broadwell CPUs,
 system calls that perform the least kernel work are impacted the most
 (e.g., \texttt{getpid()}), but a wide range of operations are impacted
 significantly (25\%-100\% slowdowns). These observations are similar
@@ -62,7 +62,7 @@ are also in part due to the newer Cascade Lake CPUs being \emph{slower}
 in the baseline case when software-controllable mitigations are disabled.
 Figure~\ref{fig:regression} shows the performance of the microbenchmark
 on Cascade Lake (Intel Xeon Silver 4210R) relative to the earlier
-Skylake CPU (Intel Xeon E5-2640 v4).  Our experiment uses CPUs
+Broadwell CPU (Intel Xeon E5-2640 v4).  Our experiment uses CPUs
 with identical clocks (2.4~GHz), and nearly identical other hardware
 (Dell PowerEdge T430 vs. T440), which allows the comparison to be
 meaningful.  The results demonstrate that, although the new CPU is
