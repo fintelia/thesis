@@ -64,7 +64,7 @@ and Intel issued hardware and microcode fixes for bugs that violate
 \contract~\cite{intel:meltdown, intel:l1tf}.
 
 To demonstrate the benefits of the unmapped speculation contract,
-this paper presents \sys{}, a novel kernel architecture that uses
+this thesis presents \sys{}, a novel kernel architecture that uses
 selective kernel memory mapping to avoid the costs of transient execution
 mitigations.  \sys{} maintains separate kernel memory mappings for each
 process, and ensures that the memory mapped in the kernel of a process
@@ -84,7 +84,7 @@ the kernel contains sensitive fields, such as the saved registers of that
 process, which should not be leaked to other processes.  At the same time,
 every process must be able to invoke the scheduler, which in turn may
 need to traverse the list of \texttt{proc} structures on the run queue.
-This paper presents several techniques to partition the kernel:
+We present several techniques to partition the kernel:
 transparent switching of kernel address spaces when accessing sensitive
 pages through page faults; using temporary mappings to access unmapped
 physical pages; splitting data structures into public and private
@@ -105,11 +105,12 @@ We evaluate the performance of our \sys prototype using
 for a range of application workloads: Spark, Redis, PostgreSQL,
 Chromium, and building the Linux kernel.  \bench allows us to precisely
 measure the impact of mitigations on system calls that matter
-for applications.  The most recent Intel CPUs (such as Cascade Lake)
-include hardware mitigations that cannot be fully disabled; however, some of
-these mitigations are not needed in \sys.  To avoid the performance
-overhead of such unnecessary mitigations, we run experiments on
-the previous generation of Intel CPUs (Skylake).
+for applications.
+% The most recent Intel CPUs (such as Cascade Lake)
+% include hardware mitigations that cannot be fully disabled; however, some of
+% these mitigations are not needed in \sys.  To avoid the performance
+% overhead of such unnecessary mitigations, we run experiments on
+% the previous generation of Intel CPUs (Skylake).
 %\autoref{s:motivation} discusses these hardware mitigation overheads in
 %more detail.
 
