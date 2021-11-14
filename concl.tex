@@ -1,0 +1,43 @@
+%\section{Conclusion}
+\label{s:concl}
+
+This thesis assesses the evolution of performance penalties for
+mitigations against transient execution side-channel attacks by
+measuring their overheads across several generation of Intel and AMD
+CPUs, and introduces the \sys kernel design which eliminates as much
+as half this overhead on OS heavy workloads.
+
+Although the time passed since the first mitigations is short,
+we observe a few trends: 1) on an OS-intensive workload the
+overhead of mitigations has declined from over 30\% on our oldest
+processor to under 3\% on the most recent CPUs; and 2) JavaScript
+sandboxing stresses different mitigations, whose overheads are
+significant and unchanged across successive generations.
+
+A further analysis of individual mitigations shows that the hardware
+improvements in successive generations have reduced the overhead of
+some mitigations to something small, while the overheads for Spectre
+V1 and V2 mitigations haven't changed across processor generations and
+are significant.  We speculate, however, that it should be possible to
+reduce these overheads of these mitigations with hardware changes too;
+for example, the Spectre V1 mitigation has a recognizable pattern of a
+conditional move followed by a load instruction, which could be
+detected by hardware to trigger special handling.
+
+The \contract
+allows hardware to speculate on many values (but not the values of
+page table entries) and provides software with a mechanism to prevent
+leaking secrets through micro-architectural state.  The \sys design
+shows how \contract can be used to reduce the performance costs of
+mitigations on system calls using per-process Q domains and global K
+domains.  \sys transparently switches from Q- to K-domain through page
+faults, uses temporary mappings to access unmapped physical pages, and
+splits data structures into public and private parts.  An evaluation
+shows that \sys can run the microbenchmarks of \bench with small
+performance overhead compared to a kernel without mitigations: for
+18 out of 30 \bench microbenchmarks, \sys's performance is within 5\%
+of the performance without mitigations.
+On Broadwell, \sys overall has a geometric mean slowdown of 16\% on \bench compared to 32\% for Linux.
+% Although \sys is research kernel, we are hopeful that its
+% ideas can carry over to production monolithic kernels.
+Although \sys is research kernel, we are hopeful that the ideas of this thesis can carry over to production kernels and web browsers.
