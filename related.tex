@@ -1,0 +1,119 @@
+\label{s:related}
+
+This thesis is motivated by the papers that show how secret kernel data
+can be leaked through micro-architectural state, which started with the discovery of Meltdown~\cite{lipp:meltdown} and the original Spectre~\cite{kocher:spectre} variants.
+These were rapidly followed by the discovery of more attacks targeting transient execution, including MDS~\cite{canella:fallout,schwarz:zombieload,schaik:ridl}, Speculative Store Bypass~\cite{horn:speculative-store-bypass}, and many others~\cite{bhattacharyya:smotherspectre,bulck:foreshadow,chen:sgxspectre,koruyeh:spectrersb,ragab:crosstalk,stecklina:lazyfp,schaik:cacheout,weisse:foreshadow-ng, bulck:lvi}.
+Two survey papers were helpful by categorizing the known attacks~\cite{hill:survey,sok:transient,xiong:survey}.
+
+We rely heavily on the mitigation work in the Linux
+community~\cite{linux:vuln}. \sys adopts Linux's techniques and their
+optimized implementation in the K domain.  \sys uses, for example,
+Linux's \texttt{nospec} macro for bounds clipping,
+\texttt{FILL\_RETURN\_BUFFER} to fill the return buffer, and retpoline.
+\sys's hotpatching of its kernel text to remove retpolines in the Q
+domain was inspired by Linux's \textsc{alternative}
+macro~\cite{lwn:alternative}.
+
+In addition to the software/microcode approach currently used by Linux and other other operating systems on older hardware, some of these attacks have been fixed in production hardware~\cite{intel:affected-processors}.
+Meanwhile known hardware techniques for addressing others require more substantial changes~\cite{barber:specshield, weisse:nda, ainsworth:muontrap,yu:stt,yu:sdo}, generally by somehow delaying the use of speculative data until it is safe.
+While such defenses are
+more comprehensive, they have higher overheads that impact performance whenever
+speculation occurs. By contrast, the \contract constrains speculation in a more
+targeted way based on memory mappings. ConTExT also proposes constraining
+speculation based on memory mappings, but introduces a new PTE bit to explicitly
+mark pages that contain secret data~\cite{ConTExT}. \sys instead keeps secrets in
+separate address spaces, and allows speculation after employing its defenses to
+switch to the K domain.  Finally, SpecCFI proposes to enforce control-flow
+integrity during speculative execution~\cite{koruyeh:speccfi}. This idea strengthens
+Spectre defenses, and is complementary to \sys.
+
+User-space sandboxing requires its own set of techniques.
+Swivel~\cite{narayan:swivel} is a compiler framework which hardens WASM bytecode against attack, while
+Firefox's and Chrome's WASM engines rely on Site Isolation~\cite{reis:site-isolation}.
+Production JavaScript engines deploy more targeted mitigations like Pointer Poisoning and Index Masking~\cite{webkit:spectre-meltdown}, and also reduce the overall timer precision~\cite{mozilla:timer-precision, webkit:spectre-meltdown}.
+Compiler techniques like Speculative Load Hardening~\cite{carruth:slh} ensure binaries are completely immune to Spectre, albeit at considerable overhead.
+
+The Q page table is inspired by the shadow page table in
+KAISER~\cite{gruss:kaiser} and KPTI~\cite{linux:kpti}. In Linux, when
+a process executes in user space, the process runs with a shadow
+page table, which maps only minimal parts of kernel memory: the kernel
+memory to enter/exit the kernel on a system call. As soon as the process
+enters the kernel, it switches to the kernel page table that maps all
+of physical memory.  \sys, however, executes complete system
+calls while running under the Q page table; this requires a significant
+redesign of the OS kernel, which is a major focus of this paper.
+
+The use of virtual-memory to partition the kernel address space has a
+long history in operating systems research.  One example is
+Nooks~\cite{swift:nooks-tocs}, which runs device drivers in separate
+protection domains with their own page table in kernel space to
+provide fault isolation between drivers and the kernel.  Another
+example is the use of Mondrian Memory Protection~\cite{witchel:mmp} to
+isolate Linux kernel modules in different protection domains within
+the kernel address space~\cite{witchel:mondrix}.  The most
+recent example is Mike Rapoport's work on kernel address space
+isolation~\cite{lwn:beyond-kpti} in Linux.  These designs use similar
+techniques to introduce isolation domains within the kernel, but focus
+on traditional attacks (e.g., code execution through a buffer overflow)
+as opposed to transient execution.
+
+%Flush Conflict~\cite{weber:osiris} automated discovery
+
+
+There were a few early performance studies~\cite{nikolay:meltdown-spectre-performance,prout:measuring-spectre-meltdown} but they predate more recently discovered attacks.
+The Linux community has paid close attention to the cost of mitigations including for IBRS~\cite{linus:ibrs-rant},  KPTI~\cite{gregg:kpti-perfromance}, and MDS~\cite{larabel:perf-zombieload} which has played a role in both understanding and driving down the performance overheads.
+
+% Several survey papers~\cite{hill:survey,sok:transient,xiong:survey} classify attacks but not their performance impact, while LEBench~\cite{ren:lebench} explored how mitigations impacted performance across kernel versions.
+
+% Where this work stands out is by looking at many different generations of CPUs and characterizing the performance impacts of the set of mitigations deployed in practice.
+
+% Uses size information to avoid spectre
+% https://www.cs.columbia.edu/~mtarek/files/preprint_ISCA21_NoFAT.pdf
+
+% MuonTrap. A hardware approach to preventing spectre attacks by preventing speculative accesses from ever entering the cache. 5% slowdown on SPEC, but actually a speedup on PARSEC due to their tiny but fast L0 cache.
+% https://arxiv.org/pdf/1911.08384.pdf
+
+% Speculative Data-Oblivious Execution. Hardware approach to preventing spectre attack. Builds on Speculative Taint Tracking.
+% [SDO] https://iacoma.cs.uiuc.edu/iacoma-papers/isca20_2.pdf
+% [STT] https://www.cs.tau.ac.il/~mad/publications/micro2019-stt.pdf
+%
+% Contains a good summary of related work on hardware defenses for speculative execution.
+
+% Mitigation list on Intel Processors.
+% https://software.intel.com/content/www/us/en/develop/topics/software-security-guidance/processors-affected-consolidated-product-cpu-model.html
+
+% Swivel: Hardening WebAssembly against Spectre
+% https://www.usenix.org/system/files/sec21-narayan.pdf
+
+% DOLMA: Hardware approach with 10-40% but more complete coverage of attacks, including those targeting registers
+% https://www.usenix.org/conference/usenixsecurity21/presentation/loughlin
+
+% Rage Against the Machine Clear. Study of machine clears as a root cause for attacks. Also has a good list of attacks in related work section (plus list 3 survey papers on it)
+% https://www.usenix.org/system/files/sec21-ragab.pdf
+
+
+%% A kernel-organizational view of \sys is that the K domain is a
+%% microkernel that provides services to Q domains~\cite{liedtke:sosp95},
+%% but all running in kernel mode. Alternatively, one can view the K
+%% domain as a hypervisor multiplexing several virtual machines that each
+%% run an application with its Q domain~\cite{bugnion:disco,barham:xen}.
+%% In both views, the interface between the Q and the K domains is more
+%% porous than a microkernel or hypervisor interface: parts of data
+%% structures of the K domain are directly mapped into Q domains to avoid
+%% world switches.
+
+%% other related work:
+
+%% %https://www.microsoft.com/en-us/research/wp-content/uploads/2017/08/cloak_sec17.pdf
+
+%% %https://www.usenix.org/system/files/conference/usenixsecurity18/sec18-dong.pdf
+
+%% T-SGX (Shih, NDSS 2017)
+
+%% architectural changes (e.g., removing side channel, avoiding resource
+%% sharing)
+
+%% Yan, InvisiSpec
+
+%% oo7: low-overhead defense against spectre attacks via binary analysis
+
