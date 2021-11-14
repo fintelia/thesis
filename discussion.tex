@@ -1,0 +1,32 @@
+Spectre and Meltdown will likely never be completely solved.
+The ongoing impact to performance however is continuing to decline, and on some workloads isn't even measurable at all.
+Watching the stream of new transient execution attacks being published might not give this impression, but that comes from mistakenly looking at the quantity of attacks independent of their performance drain.
+
+One aspect in particular that that gets overlooked is that production operating systems don't try to provide perfect isolation in the first place.
+This is a challenge for the security community because it is much harder to model, but a tremendous opportunity to the systems community that can ignore low severity side channels (or accept incomplete fixes for more severe ones).
+It means that the intervention proposed to mitigate a specific side channel attack it its creator might not be deemed excessive by the developer community.
+
+One example is disabling hyperthreading.
+While theoretically necessary to mitigate certain attacks, Linux by default choses to just ignore that advice and run mutually untrusting processes on adjacent hyperthreads.
+An even more pronounced case is Spectre V1: the only way to be 100\% sure that no gadgets are present is to insert speculation barriers of some sort after every single branch in the kernel, because there isn't a programmatic way to know which are vulnerable.
+Instead Linux developers just annotate all the specific code sequences they can find to prevent them from being exploited.
+From a theoretical sense this is deeply unsatisfying since there are almost surely places that have been missed.
+However, the constant stream of memory safety and logic bugs being discovered in the kernel makes any comparatively difficult to exploit Spectre vulnerabilities of limited concern.
+
+It is also worth considering performance impacts in context.
+The Zen 3 processor we experimented with might look like it has the worst overhead from Speculative Store Bypass Disable, but that is only on relative terms.
+In fact, it is so much faster than any of the other machines we tested that its runtime with SSBD enabled was lower than any other processor with it disabled!
+That partly comes down to clock speed, but also the generational improvement in CPUs which almost invariably exceeds the at this point roughly 3\% overhead that OS-level mitigations cause to syscall workloads.
+It is hardly worth closing that gap if it would come at cost of potentially losing out on improvements that could speed up all workloads.
+
+With the context discussed so far, the major area most applicable for future work is Javascript isolation.
+Across all the processors we studied, overheads from mitigations have been high and unchanging.
+A big chunk of Javascript overhead is from SSBD, which may be solvable by hardware at low cost.
+However, that requires drawing attention to it: most public documentation emphasizes that SSBD isn't used by default and neglects to mention that critical applications like web browsers do enable it.
+
+The second facet of possible future work is addressing Spectre V1 from sandboxed Javascript code.
+JIT compilers can readily insert appropriate bounds check instructions and speculation barriers to prevent the common variants of the attack.
+However, existing processors are not tuned to accelerate these code patterns, so the cumulative impact of running them thousands or millions of times can have a detrimental impact on performance.
+This doesn't need to be the case!
+The computer architecture community has already studied ways for a CPU to perform memory operations without introducing Spectre gadgets.
+Those techniques are painfully slow when applied to every memory operating in a program, but could be far more reasonable when applied only to memory instructions flagged by the JIT.
