@@ -3,15 +3,15 @@
 \sys's goal is to reduce the performance cost of mitigations for transient
 execution attacks.  In principle, \sys's techniques can reduce not only
 the cost of software mitigations, but also allow processor designers
-to avoid costly mitigations in hardware.  Practically, however, it is
-difficult for us to disable hardware mitigations in the newest processors.
-%% they appear to have significant performance costs, as shown in the
-%% previous section.
-Therefore, this paper focuses on reducing the overhead
-of software mitigations, and experimentally measures their effect on the
-previous generation of CPUs, where we can avoid mitigations altogether.
-We hope that \sys's design can allow processor designers to regain some
-of the absolute performance lost due to hardware mitigation costs.
+to avoid costly mitigations in hardware.  Practically, however, \sys 
+is most applicable to older Intel processors which incur the largest
+costs on OS-level mitigations.
+
+% This chapter focuses on reducing the overhead of software mitigations, 
+% and experimentally measures their effect on the
+% previous generations of CPUs predating the discovery , where we can avoid mitigations altogether.
+% We hope that \sys's design can allow processor designers to regain some
+% of the absolute performance lost due to hardware mitigation costs.
 
 Our threat model targets scenarios where the adversary
 and the victim are both running code on the same computer.  This might
@@ -78,8 +78,7 @@ out of scope for this paper, since they are orthogonal to the key
 challenge of transient execution leakage.  In particular, we do not
 consider attacks that leverage physical side channels (such
 as Rowhammer or RAMbleed), cache side channels (such as cache timing
-attacks), power side channels, etc.
-
+attacks), interrupt side channels, power side channels, etc.
 
 \section{Approach: Unmapped speculation contract}
 
@@ -94,7 +93,7 @@ it by.
 % not speculate on the physical address bits in page table entries, and as a result, the
 % lack of a page table entry serves as a barrier to speculative execution.
 
-A contribution of this paper lies in articulating a hardware/software
+A contribution of this thesis lies in articulating a hardware/software
 contract---which we call the \emph{unmapped speculation contract}---that
 captures the above intuition.  The contract aims to provide a strong
 foundation for keeping data confidential, which is typically stated as

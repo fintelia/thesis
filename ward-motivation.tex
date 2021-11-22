@@ -10,15 +10,15 @@
 \label{fig:linuxslowdown}
 \end{figure*}
 
-\begin{figure*}[t]
-  \begin{center}
-    \includegraphics{results/cascade_lake_regression}
-  \end{center}
-\vspace{-\baselineskip}
-\caption{Performance regression on the newer Cascade Lake CPU, compared to the older Broadwell CPU,
-  for \bench on Linux, with all software-controllable mitigations disabled.}
-\label{fig:regression}
-\end{figure*}
+% \begin{figure*}[t]
+%   \begin{center}
+%     \includegraphics{results/cascade_lake_regression}
+%   \end{center}
+% \vspace{-\baselineskip}
+% \caption{Performance regression on the newer Cascade Lake CPU, compared to the older Broadwell CPU,
+%   for \bench on Linux, with all software-controllable mitigations disabled.}
+% \label{fig:regression}
+% \end{figure*}
 
 Transient execution mitigations harm kernel performance in two
 ways. First, they place overhead on code execution by disabling
@@ -55,25 +55,25 @@ to those made by Ren et. al.; they find that KPTI and Spectre V2
 mitigations are the root cause of slowdowns in the Linux
 Kernel over the last two years~\cite{lebench}.
 
-The newer Cascade Lake CPUs exhibit lower relative overheads, partly
-because the processors include hardware mitigations for some of the
-transient execution vulnerabilities.  However, these lower overheads
-are also in part due to the newer Cascade Lake CPUs being \emph{slower}
-in the baseline case when software-controllable mitigations are disabled.
-Figure~\ref{fig:regression} shows the performance of the microbenchmark
-on Cascade Lake (Intel Xeon Silver 4210R) relative to the earlier
-Broadwell CPU (Intel Xeon E5-2640 v4).  Our experiment uses CPUs
-with identical clocks (2.4~GHz), and nearly identical other hardware
-(Dell PowerEdge T430 vs. T440), which allows the comparison to be
-meaningful.  The results demonstrate that, although the new CPU is
-faster at some microbenchmarks, it is slower for many others: e.g.,
-context-switching is about 20\% slower.  Although it is impossible for us to
-separate slowdowns due to mitigations from speedups due to architectural
-improvements, the results suggest that the overheads of mitigations implemented
-in hardware (e.g., for Meltdown, L1TF, or MDS) could still be significant.
-\footnote{One indication that this regression may be related to hardware
-  mitigations is that measured branch mispredictions are around 40\% higher on
-  LEBench.}
+% The newer Cascade Lake CPUs exhibit lower relative overheads, partly
+% because the processors include hardware mitigations for some of the
+% transient execution vulnerabilities.  However, these lower overheads
+% are also in part due to the newer Cascade Lake CPUs being \emph{slower}
+% in the baseline case when software-controllable mitigations are disabled.
+% Figure~\ref{fig:regression} shows the performance of the microbenchmark
+% on Cascade Lake (Intel Xeon Silver 4210R) relative to the earlier
+% Broadwell CPU (Intel Xeon E5-2640 v4).  Our experiment uses CPUs
+% with identical clocks (2.4~GHz), and nearly identical other hardware
+% (Dell PowerEdge T430 vs. T440), which allows the comparison to be
+% meaningful.  The results demonstrate that, although the new CPU is
+% faster at some microbenchmarks, it is slower for many others: e.g.,
+% context-switching is about 20\% slower.  Although it is impossible for us to
+% separate slowdowns due to mitigations from speedups due to architectural
+% improvements, the results suggest that the overheads of mitigations implemented
+% in hardware (e.g., for Meltdown, L1TF, or MDS) could still be significant.
+% \footnote{One indication that this regression may be related to hardware
+%   mitigations is that measured branch mispredictions are around 40\% higher on
+%   LEBench.}
 
 %\fk{table 11 in ~\cite{sok:transient} claims the overhead of KPTI is
 %  small, < 3\%}
