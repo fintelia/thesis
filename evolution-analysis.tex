@@ -4,9 +4,7 @@
 void victim_target() {
   int c = 12345 / 6789;
 }
-void nop_target() {
-  // do nothing
-}
+void nop_target() { /* do nothing */ }
 
 void(*target)();
 
@@ -32,8 +30,7 @@ void test() {
 
 bool divide_happened() {
   // fill branch history buffer
-  for (int i = 0; i < 128; i++)
-    ;
+  for (int i = 0; i < 128; i++) {}
 
   // flush branch target from cache
   clflush(target);
@@ -52,17 +49,20 @@ bool divide_happened() {
 \end{figure}
 
 \begin{table*}[ht]
+    \begin{center}
     \begin{tabular}{ clccccc } 
-      && \multicolumn{3}{c}{\textbf{With intervening system call}} & \multicolumn{2}{c}{\textbf{No system call}} \\
-      \textbf{Vendor} & \textbf{CPU} & user$\rightarrow$kernel & user$\rightarrow$user & kernel$\rightarrow$kernel & user$\rightarrow$user & kernel$\rightarrow$kernel \\ \hline 
+      && \multicolumn{3}{r}{\textbf{With intervening system call}} & \multicolumn{2}{c}{\textbf{No system call}} \\
+      \textbf{Vendor} & \textbf{CPU} & u$\rightarrow$k & u$\rightarrow$u & k$\rightarrow$k & u$\rightarrow$u & k$\rightarrow$k \\ \hline 
       \multirow{5}{*}{Intel} & Broadwell           & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
                              & Skylake Client    & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
                              & Cascade Lake        &            & \checkmark & \checkmark & \checkmark & \checkmark \\ 
                              & Ice Lake Client   &            & \checkmark & \checkmark & \checkmark & \checkmark \\ 
                              & Ice Lake Server   &            & \checkmark & \checkmark & \checkmark & \checkmark \\ \hline
-      \multirow{2}{*}{AMD}   & Zen 2           & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+      \multirow{3}{*}{AMD}   & Zen             & \textcolor{red}{X} & \textcolor{red}{X} & \textcolor{red}{X} & \textcolor{red}{X} & \textcolor{red}{X} \\
+                             & Zen 2           & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
                              & Zen 3         &  &  &  &  & \\ \hline
     \end{tabular}
+    \end{center}
     \caption{ Whether the processor will speculatively execute an indirect branch in the given configuration when IBRS is disabled.
               A checkmark in column X$\rightarrow$Y indicates that training the branch target buffer in mode X is able
               to control the target of a subsequent victim indirect branch in mode Y, either with or without an intervening \texttt{syscall} and/or \texttt{sysret} instruction between them.}
@@ -70,19 +70,22 @@ bool divide_happened() {
   \end{table*}
   
   \begin{table*}[ht]
+    \begin{center}
     \begin{tabular}{ clccccc } 
       && \multicolumn{3}{c}{\textbf{With intervening system call}} & \multicolumn{2}{c}{\textbf{No system call}} \\
-      \textbf{Vendor} & \textbf{CPU} & user$\rightarrow$kernel & user$\rightarrow$user & kernel$\rightarrow$kernel & user$\rightarrow$user & kernel$\rightarrow$kernel \\ \hline 
+      \textbf{Vendor} & \textbf{CPU} & u$\rightarrow$k & u$\rightarrow$u & k$\rightarrow$k & u$\rightarrow$u & k$\rightarrow$k \\ \hline 
       \multirow{5}{*}{Intel} & Broadwell           & & & & & \\
                              & Skylake Client   & & & & & \\
                              & Cascade Lake      &            & \checkmark & \checkmark & \checkmark & \checkmark \\ 
                              & Ice Lake Client   &            & \checkmark &             & \checkmark &  \\ 
                              & Ice Lake Server   &            & \checkmark & \checkmark  & \checkmark & \checkmark \\ \hline
-      \multirow{2}{*}{AMD}   & Zen 2           & & & & & \\
+      \multirow{3}{*}{AMD}   & Zen            & \tiny{N/A} & \tiny{N/A} & \tiny{N/A} & \tiny{N/A} & \tiny{N/A} \\
+                             & Zen 2           & & & & & \\
                              & Zen 3         & & & & & \\ \hline
     \end{tabular}
+    \end{center}
     \caption{ Same as Table~\ref{table:btb-no-ibrs} but with IBRS \textit{enabled}.
-              IBRS always prevents problematic cases like user$\rightarrow$kernel, but on many processors blocks all speculation including predicting the target of userspace indirect branches based on prior branches done by the same process (user$\rightarrow$user).
+              IBRS always prevents problematic cases like u$\rightarrow$k, but on many processors blocks all speculation including predicting the target of userspace indirect branches based on prior branches done by the same process (u$\rightarrow$u).
     }
     \label{table:btb-ibrs}
   \end{table*}

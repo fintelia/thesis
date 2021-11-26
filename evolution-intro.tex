@@ -6,8 +6,8 @@ From the end-user perspective, a significant concern from transient execution si
 This is because operating systems and applications have deployed mitigations to restore their previous security guarantees, but those same mitigations make systems slower.
 Despite this highly visible impact on user experience, we know of no systematic study that quantifies what this overhead is for modern software stacks and how it may differ across generations of CPUs.
 
-To understand how performance has evolved, our experiments look at a range of processors including Intel processors that predate the discovery of Spectre and Meltdown (but which are still in active use), newer ones which incorporate some mitigations, and even more recent models with still more mitigations.
-We also look at two AMD processors, enabling us to compare across vendors.
+To understand how performance has evolved, our experiments look at a range of processors including both some that predate the discovery of Spectre and Meltdown (but which are still in active use), newer ones which incorporate some mitigations, and even more recent models with still more mitigations.
+We evaluate five processors from Intel and three AMD processors, enabling us to compare across vendors.
 
 We first consider the end-to-end impact of transient execution attacks.
 Across a range of benchmarks, we characterize the overhead caused by mitigations on each CPU and further attribute how much of the overall slowdown is caused by each individual mitigation.
@@ -16,23 +16,22 @@ For mitigations that incurs meaningful overhead, we investigate in more detail t
 
 On workloads like the LEBench~\cite{ren:lebench} benchmark suite that stress the user-kernel interface we find overheads have declined from over 30\% on our oldest processor to under 3\% on the most recent CPUs.
 By contrast, when examining the impact on JavaScript engine performance as measured by the Octane 2 benchmark suite~\cite{google:octane2}, we observed no improvement across successive generations at all.
+For AMD processors the overhead has actually gotten worse.
 On a compute intensive benchmark, there was well under one percent overhead on each of the processors we evaluated.
 
 Our microbenchmarks explain these trends.
-The most expensive mitigations on the first workload stressing the operating system interface have been fixed in hardware on newer hardware, thereby eliminating the overhead.
-By contrast, JavaScript sandboxing stresses a different set of mitigations which
-have substantial cost but none of which have been fixed through hardware changes.
+The most expensive mitigations on the first workload stressing the operating system interface have been fixed in hardware on newer CPUs, thereby eliminating the overhead.
+By contrast, JavaScript sandboxing stresses a different set of mitigations which have substantial cost but none of which have been fixed through hardware changes.
 
 This chapter seeks to draw attention to the performance critical areas for improving transient execution mitigations, driven by (1) an end-to-end survey of how mitigation costs have evolved over processor generations, and (2) detailed microbenchmarking of individual mitigations.
 To analyze hardware mitigations for Spectre V2, we also contribute a new technique to measure speculation using ideas from Bölük~\cite{speculating-x86}.
-Our benchmarks and analysis code will be made available on GitHub.
+%Our benchmarks and analysis code will be made available on GitHub.
 
 There are some limitations.
-Our evaluation does not consider a virtual machine workload, though in such workloads guest-hypervisor boundary crossings tend to be much less frequent than user-kernel boundary crossings so mitigation overheads should be correspondingly lower.
+%Our evaluation does not consider a virtual machine workload, though in such workloads guest-hypervisor boundary crossings tend to be much less frequent than user-kernel boundary crossings so mitigation overheads should be correspondingly lower.
 We are limited in the number of processor generations to evaluate and at the same time the processors we do consider are diverse in terms of clock speed, core count, power draw, and many other dimensions.
-And also the conclusions we can draw are constrained by the lack of
-public details on how hardware mitigations are implemented.  Finally,
-new attacks may require new mitigations with their own overheads.
+Additionally the conclusions we can draw are constrained by the lack of public details on how hardware mitigations are implemented.  
+Finally, new attacks may require new mitigations with their own overheads.
 
 % The rest of the paper is organized as follows.  \autoref{s:related}
 % relates this paper to previous work.  \autoref{s:background} describes

@@ -20,9 +20,26 @@ In the following benchmarks we evaluate across seven different CPU microarchitec
 Considering different microarchictures enables us to observe design improvements between successive releases.
 Table~\ref{fig:cpus} lists out detailed information on each CPU.
 
-The five Intel processors we evaluate span from before the discovery of Spectre and Meltdown (Broadwell and Skylake Client) to the most recently available mobile and server microarchictures (Ice Lake Client and Server respectively).
-Despite sharing the same name, this pair of microarchictures differ meaningfully from one another.
-We also run on the two most recent AMD microarchictures, enabling us to compare across vendors.
+\begin{table*}[t]
+    \begin{center}
+    \begin{tabular}{ cllcccc }
+      \textbf{Vendor} & \textbf{Model} & \textbf{Microarchitecture} & \textbf{Power (W)} & \textbf{Clock (GHz)} & \textbf{Cores} \\ \hline 
+        \multirow{5}{*}{Intel} & E5-2640v4         & Broadwell (2014)          & 90 & 2.4 & 10 \\
+                               & i7-6600U          & Skylake Client (2015)   & 15 & 2.6 & 2 \\
+                               & Xeon Silver 4210R & Cascade Lake (2019)       & 100 & 2.4 & 10 \\
+                               & i5-10351G1        & Ice Lake Client (2019)  & 15 & 1.0 & 4 \\
+                               & Xeon Gold 6354    & Ice Lake Server (2021)  & 205 & 3.0 & 18 \\ \hline
+        \multirow{3}{*}{AMD}   & Ryzen 3 1200      & Zen (2017)                & 65 & 3.1 & 4 \\
+                               & EPYC 7452         & Zen 2 (2019)              & 155 & 2.35 & 32 \\
+                               & Ryzen 5600X       & Zen 3 (2020)              & 65 & 3.7 & 6 \\ \hline
+    \end{tabular}
+    \end{center}
+    \caption{Information about each of the CPUs we evaluate. All except the Ryzen 3 1200 have 2-way SMT ("hypertheads" in Intel terminology).}
+    \label{fig:cpus}
+  \end{table*}
+
+The processors we evaluate span from before the discovery of Spectre and Meltdown (Broadwell, Skylake Client, and Zen) to the most recently available Intel mobile and server microarchictures (Ice Lake Client and Server respectively) and AMD microarchicture (Zen~3).
+Despite sharing the same name, Ice Lake Client and Ice Lake Server differ meaningfully from one another.
 All machines have an up-to-date kernel: either version 5.11, the 5.14 release, or the 5.4 long-term maintenance release.
 
 This diversity of systems gives a broad view of the ecosystem, but at the same time our work is complicated by all the different dimensions they vary on.

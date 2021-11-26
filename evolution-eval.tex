@@ -19,16 +19,19 @@ As seen in Table~\ref{table:meltdown}, on processors vulnerable to Meltdown the 
 For syscalls, the Ice Lake Client CPU takes fewer cycles (which will prove a pattern---likely due to its lower base clock speed) and the Cascade Lake model stands out by taking longer than both earlier and later Intel models.
 
 \begin{table}[h]
-  \begin{tabular}{lccc} 
-      \textbf{CPU} & \textbf{\texttt{syscall}} & \textbf{\texttt{sysret}}  & \textbf{swap \texttt{cr3}} \\ \hline 
-      Broadwell             & 49 & 40 & 206 \\
-      Skylake Client        & 42 & 42 & 191 \\
-      Cascade Lake          & 70 & 43 & 0 \\
-      Ice Lake Client       & 21 & 29 & 0 \\
-      Ice Lake Server       & 45 & 32 & 0 \\ \hline
-      Zen 2                 & 53 & 46 & 0 \\
-      Zen 3                 & 83 & 55 & 0 \\ \hline
+  \begin{center}
+  \begin{tabular}{clccc} 
+    \textbf{Vendor} & \textbf{CPU} & \textbf{\texttt{syscall}} & \textbf{\texttt{sysret}}  & \textbf{swap \texttt{cr3}} \\ \hline 
+    \multirow{5}{*}{Intel} & Broadwell             & 49 & 40 & 206 \\
+                           & Skylake Client        & 42 & 42 & 191 \\
+                           & Cascade Lake          & 70 & 43 & 0 \\
+                           & Ice Lake Client       & 21 & 29 & 0 \\
+                           & Ice Lake Server       & 45 & 32 & 0 \\ \hline
+      \multirow{3}{*}{AMD} & Zen                   & 63 & 53 & 0 \\
+                           & Zen 2                 & 53 & 46 & 0 \\
+                           & Zen 3                 & 83 & 55 & 0 \\ \hline
   \end{tabular}
+  \end{center}
   \caption{Average cycles to execute a \texttt{syscall} or \texttt{sysret} instruction, and for vulnerable processors, to swap page tables. }
   \label{table:meltdown}
 \end{table}
@@ -50,6 +53,7 @@ Recent Intel processors and well as all AMD processors are not vulnerable to MDS
 On these processors the \texttt{verw} has only its legacy segmentation-related behavior and takes only tens of cycles.
 
 \begin{table}[h]
+  \begin{center}
   \begin{tabular}{clc}
       \textbf{Vendor} & \textbf{CPU} & \textbf{Clear Cycles} \\ \hline 
       \multirow{5}{*}{Intel} & Broadwell             & 610 \\
@@ -57,9 +61,11 @@ On these processors the \texttt{verw} has only its legacy segmentation-related b
                              & Cascade Lake          & 458 \\
                              & Ice Lake Client       & 0 \\
                              & Ice Lake Server       & 0 \\ \hline
-      \multirow{2}{*}{AMD}   & Zen 2                 & 0 \\
+      \multirow{3}{*}{AMD}   & Zen                   & 0 \\
+                             & Zen 2                 & 0 \\
                              & Zen 3                 & 0 \\ \hline
   \end{tabular}
+  \end{center}
   \caption{Cycles required to clear microarchitectural buffers using the
     \texttt{verw} instruction. Processors not vulnerable to MDS are listed as
     zero cycles because they do not require any microarchitectural buffers to be cleared before returning to user space. }
@@ -123,16 +129,19 @@ slower than a generic retpoline.
 
 
 \begin{table}[h]
-\begin{tabular}{ rcccc }
-  \textbf{CPU} & \textbf{Baseline} & \textbf{IBRS} & \textbf{Generic} & \textbf{AMD} \\ \hline
-  Broadwell           & 16 & +32 & +28 & \tiny{N/A} \\
-  Skylake Client      & 11 & +15 & +19 & \tiny{N/A} \\
-  Cascade Lake        & 3 & +0 & +49 & \tiny{N/A} \\
-  Ice Lake Client     & 5 & +0 & +21 & \tiny{N/A} \\
-  Ice Lake Server     & 1 & +1 & +50 & \tiny{N/A} \\
-  Zen 2               & 3 & +13 & +14 & +0 \\
-  Zen 3               & 23 & +19 & +13 & +18 \\ \hline
+\begin{center}
+\begin{tabular}{ clcccc }
+  \textbf{Vendor} & \textbf{CPU} & \textbf{Baseline} & \textbf{IBRS} & \textbf{Generic} & \textbf{AMD} \\ \hline
+  \multirow{5}{*}{Intel} & Broadwell           & 16 & +32 & +28 & \tiny{N/A} \\
+                         & Skylake Client      & 11 & +15 & +19 & \tiny{N/A} \\
+                         & Cascade Lake        & 3 & +0 & +49 & \tiny{N/A} \\
+                         & Ice Lake Client     & 5 & +0 & +21 & \tiny{N/A} \\
+                         & Ice Lake Server     & 1 & +1 & +50 & \tiny{N/A} \\ \hline
+  \multirow{3}{*}{AMD}   & Zen                 & 30 & \tiny{N/A} & +25 & +28 \\
+                         & Zen 2               & 3 & +13 & +14 & +0 \\
+                         & Zen 3               & 23 & +19 & +13 & +18 \\ \hline
 \end{tabular}
+\end{center}
 \caption{Cycles to perform an indirect branch with either no mitigations, IBRS enabled, using generic retpolines, or using AMD retpolines.}
 \label{table:retpoline}
 \end{table}
@@ -154,7 +163,8 @@ This improvement is likely related to the fact that older processors implemented
 Our Ice Lake Client processor somewhat bucks the trend of improving performance when compared to the earlier Cascade Lake, but still requires many fewer cycles than Broadwell or Skylake.
 
 \begin{table}[h]
-    \begin{tabular}{ clr }
+    \begin{center}
+    \begin{tabular}{ clc }
       \textbf{Vendor} & \textbf{CPU} & \textbf{IBPB cycles} \\ \hline
 
       \multirow{5}{*}{Intel} & Broadwell         & 5573 \\
@@ -162,9 +172,11 @@ Our Ice Lake Client processor somewhat bucks the trend of improving performance 
                              & Cascade Lake      & 340 \\
                              & Ice Lake Client   & 2455 \\
                              & Ice Lake Server   & 836 \\ \hline
-      \multirow{2}{*}{AMD}   & Zen 2             & 1088 \\
+      \multirow{3}{*}{AMD}   & Zen               & 7370 \\
+                             & Zen 2             & 1088 \\
                              & Zen 3             & 808 \\ \hline
     \end{tabular}
+    \end{center}
     \caption{Cycles to execute an indirect branch speculation barrier. }
     \label{table:ibpb}
 \end{table}
@@ -187,6 +199,7 @@ These improvements are likely realized more by improving performance overall
 than trying to optimize for return stack buffer filling specifically, but regardless, the cost of these mitigations is relatively minor compared to the total overhead of doing a context switch between processes.
 
 \begin{table}[h]
+  \begin{center}
   \begin{tabular}{clc}
       \textbf{Vendor} & \textbf{CPU} & \textbf{RSB Fill Cycles} \\ \hline
       \multirow{5}{*}{Intel} & Broadwell       & 130 \\
@@ -194,9 +207,11 @@ than trying to optimize for return stack buffer filling specifically, but regard
                              & Cascade Lake    & 120 \\
                              & Ice Lake Client & 40 \\
                              & Ice Lake Server & 69 \\ \hline
-      \multirow{2}{*}{AMD}   & Zen 2           & 68 \\
+      \multirow{3}{*}{AMD}   & Zen             & 114 \\
+                             & Zen 2           & 68 \\
                              & Zen 3           & 94 \\ \hline
   \end{tabular}
+  \end{center}
   \caption{Cycles to stuff the RSB. }
   \label{table:rsb-fill}
 \end{table}
@@ -222,6 +237,7 @@ We see that all times are roughly of the same scale, with newer processors showi
 The \texttt{lfence} does more work on AMD than on Intel (as evidenced by the AMD retpoline sequence described earlier) so the numbers are not directly comparable across vendors.
 
 \begin{table}[h]
+  \begin{center}
   \begin{tabular}{ clc }
     \textbf{Vendor} & \textbf{CPU} & \textbf{lfence cycles} \\ \hline
     \multirow{5}{*}{Intel} & Broadwell        & 28 \\
@@ -229,9 +245,11 @@ The \texttt{lfence} does more work on AMD than on Intel (as evidenced by the AMD
                            & Cascade Lake     & 15 \\
                            & Ice Lake Client  & 8 \\
                            & Ice Lake Server  & 13  \\ \hline
-    \multirow{2}{*}{AMD}   & Zen 2            & 4 \\
+    \multirow{3}{*}{AMD}   & Zen              & 48 \\
+                           & Zen 2            & 4 \\
                            & Zen 3            & 30 \\ \hline
   \end{tabular}
+  \end{center}
   \caption{Cycles to execute a single lfence instruction on each machine.
     In real applications, the cost will heavily depend on the other loads in flight. }
   \label{table:lfence}
