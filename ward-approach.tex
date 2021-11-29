@@ -67,14 +67,14 @@ but \sys has a novel approach for efficiently preventing kernel-to-process
 leakage of memory contents, as we describe in the next section.
 
 Although \sys addresses all known transient execution attacks, the focus
-of this paper is on attacks that allow the adversary to leak the contents
+here is on attacks that allow the adversary to leak the contents
 of arbitrary memory, which is especially important in an OS kernel.
 \sys handles other transient execution attacks, such as leaking the
 contents of sensitive data already present in the CPU (e.g., x86 MSRs),
 in the same way as Linux does.
 
 Attacks that do not leverage transient execution to leak data are also
-out of scope for this paper, since they are orthogonal to the key
+out of scope, since they are orthogonal to the key
 challenge of transient execution leakage.  In particular, we do not
 consider attacks that leverage physical side channels (such
 as Rowhammer or RAMbleed), cache side channels (such as cache timing
@@ -216,9 +216,11 @@ expensive (compared to memory references), \contract doesn't change
 their performance expectations: developers already have adapted their
 designs to avoid excessive page faults or TLB invalidations.
 
-Although the contract is aspirational, one appealing property of the
-contract is that modern computer architectures already effectively aim
-to provide such a guarantee.  AMD explicitly states in bold font that
+% Although the contract is aspirational, one appealing property of the
+% contract is that modern computer architectures already effectively aim
+% to provide such a guarantee.
+
+AMD explicitly states in bold font that
 their ``processors are designed to not speculate into memory that is
 not valid in the current virtual address memory range defined by the
 software defined page tables''~\cite[pg. 2]{amd:speculation}.  Intel
@@ -254,8 +256,7 @@ when crossing the user-kernel boundary.  This is needed because, when
 executing in kernel mode, all system memory is mapped and therefore
 could be leaked through transient execution.  The contract, however,
 captures the fact that only mapped memory is at risk with this attack.
-This allows for a more efficient mitigation of such attacks, as we
-demonstrate in \sys, by avoiding kernel mappings of sensitive memory.
+This allows for a more efficient mitigation of such attacks by avoiding kernel mappings of sensitive memory, as we demonstrate with \sys
 
 In contrast to the example of MDS attacks, which leak sensitive data
 from memory, the \contract{} does not help mitigate attacks that leak
@@ -285,10 +286,10 @@ attacks such as some variants of Spectre and MDS.
 \midrule
 
 Spectre variants & \multirow{5}{0.75in}{Memory} & Yes & Yes\\
-Meltdown & & Yes & Yes (ucode)\\
+Meltdown & & Yes & Yes (microcode)\\
 MDS & & Yes & Yes\\
 PortSmash & & Yes & Yes\\
-L1TF & & Yes & Yes (ucode)\\
+L1TF & & Yes & Yes (microcode)\\
 
 \midrule
 

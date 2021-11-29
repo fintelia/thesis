@@ -39,7 +39,7 @@ Some systems calls in \sys have less overhead than Linux, because they are
 not as efficient; for example, big and huge \texttt{mmap} in \sys requires
 an update of its radix-tree VM data structures~\cite{clements:radixvm},
 while Linux just inserts the new region into a list. Linux may see a
-bigger pay for those system calls with \sys's design than \sys.
+bigger payoff for those system calls with \sys's design than \sys.
 
 A question is how much effort is required to incorporate
 \sys's techniques into a production kernel such as Linux.

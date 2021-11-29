@@ -14,7 +14,7 @@ V2 (Branch Target Injection) &	retpoline & yes \\
 \quad \ditto & speculation barrier	&	yes \\
 \quad \ditto & return stack buffer filling	&	yes \\
 \quad \ditto & disable spec before BIOS calls &	n/a (no calls to BIOS in \sys) \\
-V3 (Meltdown) & Kernel page table isolation (KPTI) &	yes \\
+V3 (Meltdown) & Kernel page table isolation &	yes \\
 V3a (System Register Read) & microcode & yes \\
 V4 (Speculative Store Bypass) &	disable spec. or ctx. switch & yes \\
 LazyFPU	& hardware-assisted save/restore & yes \\
@@ -29,7 +29,7 @@ Meltdown-PK
 (protection key bypass)
 & address space isolation & n/a (no protection keys) \\
 Meltdown-BR
-(bounds check instr. bypass)
+(bounds check instr.)
 & lfence & n/a (no bounds check instructions) \\
 \end{tabular}
 \caption{Transient execution mitigations implemented in \sys.}

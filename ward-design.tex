@@ -155,7 +155,7 @@ stack during a world switch.
 \centering
 \small
 \begin{tabular}{lccc}
-{\bf Transient execution vulnerability} & {\bf U/Q} & {\bf K} & {\bf Ctx} \\
+{\bf Transient execution vulnerability} & {\bf User/Q-domain} & {\bf K-domain} & {\bf Context Switch} \\
 
 \midrule
 L1TF & x & x & \\
@@ -190,9 +190,8 @@ V1.2 (Read-only Protection Bypass) & \multicolumn{3}{c}{Not applicable} \\
 
 \autoref{fig:mitigations} shows the known transient execution
 attacks~\cite{hill:survey,sok:transient}, organized by the mitigations
-needed to address those attacks in \sys's design.  The columns (U/Q, K,
-and Ctx) indicate where the mitigations are needed: respectively, while
-executing in user-mode or Q domain; while executing in the K domain;
+needed to address those attacks in \sys's design.  The columns indicate where the mitigations are needed: while
+executing in user-mode or the Q domain; while executing in the K domain;
 and when context-switching between processes.
 
 % The first attack, System Register Read, requires mitigation in user-space
@@ -222,8 +221,7 @@ Meltdown also falls in this category, but for a different reason.
 Meltdown allows an adversary to bypass the user-kernel boundary check
 in the page table.  \sys's use of a separate page table for the Q and
 K domains ensures that Meltdown cannot leak any confidential data, since
-no confidential data is available in the Q domain.  Recent microcode
-from Intel fixes the Meltdown attack in a way that avoids the need for
+no confidential data is available in the Q domain.  Recent fixes from Intel resolve the Meltdown attack in a way that avoids the need for
 software mitigations.
 
 The next category of attacks require mitigation both in the K domain and
