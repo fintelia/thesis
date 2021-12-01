@@ -112,12 +112,19 @@ And since \sys is able to handle many system calls and traps entirely in the Q-d
 
 \section{Contributions}
 
-% \begin{itemize}
-%     \item
-% \end{itemize}
+One primary contribution of this work is to draw attention to the
+performance critical areas for improving transient execution
+mitigations, driven by (1) an end-to-end survey of how mitigation
+costs have evolved over processor generations, and (2) detailed
+microbenchmarking of individual mitigations.  To analyze hardware
+mitigations for Spectre V2, this thesis also contributes a new technique to measure
+speculation using ideas from Bölük~\cite{speculating-x86}.
 
-% There are also several limitations.
-
+Another contribution is articulating the Unmapped Speculation Contract, which describes upper limits of what speculative execution attacks can and cannot do. 
+And to demonstrate the benefits of the unmapped speculation contract,
+this thesis presents \sys{}, a novel kernel architecture that uses
+selective kernel memory mapping to avoid the costs of transient execution
+mitigations.
 
 \section{Outline}
 The following chapter presents an end-to-end performance evaluation, and then goes into detail on each major attack describing both background on how it works as well as analyzing its impact on each evaluated system.
