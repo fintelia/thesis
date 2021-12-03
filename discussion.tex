@@ -19,12 +19,12 @@ In fact, it is so much faster than any of the other machines we tested that its 
 That partly comes down to clock speed, but also the generational improvement in CPUs which almost invariably exceeds the at this point roughly 3\% overhead that OS-level mitigations cause to syscall workloads.
 It is hardly worth closing that gap if it would come at cost of potentially losing out on improvements that could speed up all workloads.
 
-With the context discussed so far, the major area most applicable for future work is Javascript isolation.
+With the context discussed so far, the major area most applicable for future work is JavaScript isolation.
 Across all the processors we studied, overheads from mitigations have been high and unchanging.
-A big chunk of Javascript overhead is from SSBD, which may be solvable by hardware at low cost.
+A big chunk of JavaScript overhead is from SSBD, which may be solvable by hardware at low cost.
 However, that requires drawing attention to it: most public documentation emphasizes that SSBD isn't used by default and neglects to mention that critical applications like web browsers do enable it.
 
-The second facet of possible future work is addressing Spectre V1 from sandboxed Javascript code.
+The second facet of possible future work is addressing Spectre V1 from sandboxed JavaScript code.
 JIT compilers can readily insert appropriate bounds check instructions and speculation barriers to prevent the common variants of the attack.
 However, existing processors are not tuned to accelerate these code patterns, so the cumulative impact of running them thousands or millions of times can have a detrimental impact on performance.
 This doesn't need to be the case!

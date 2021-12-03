@@ -4,13 +4,13 @@
 We start by evaluating the total cost attributable to all mitigations for transient execution attacks.
 This value is different for each individual CPU, so we compare both across generations of processors and between vendors.
 
-Later sections will go into more detail on how individual attacks work and what their respective mitigations are, but for now we wish only to gain a high level understanding of which mitigations are relevant from a performance perspective.
+Later sections will go into more detail on how individual attacks work and the characteristics of their respective mitigations, but for now we wish only to gain a high level understanding of which mitigations are relevant from a performance perspective.
 
 The primary impact of transient execution attacks is to leak information across protection boundaries.
 Accordingly mitigations to prevent such leakage often involve extra operations when the CPU transitions from one protection domain to another.
 Alternatively, some mitigations must be enabled continuously while untrusted code is being executed.
 Based on this, we focus on two particularly relevant protection boundaries: the user-kernel interface for the operating system, and the sandboxing that web browsers' JavaScript engines provide between execution contexts for different sites.
-The boundary between a hypervisor and its guest operating system is also notable, but we do not evaluate it in this work, in part because the impact of mitigations tends to be small here due to virtualization workloads avoiding VM exits wherever possible.
+The boundary between a hypervisor and its guest operating system is also notable, but we did not find significant performance differences between running virtualization workloads with and without mitigations enabled.
 
 In addition, we consider the case of a compute-intensive workload running within a single operating system process.
 That involves no protection boundary crossings, and thus measures only the impact of mitigations the operating system keeps enabled all the time.
@@ -31,7 +31,7 @@ Table~\ref{fig:cpus} lists out detailed information on each CPU.
                                & Xeon Gold 6354    & Ice Lake Server (2021)  & 205 & 3.0 & 18 \\ \hline
         \multirow{3}{*}{AMD}   & Ryzen 3 1200      & Zen (2017)                & 65 & 3.1 & 4 \\
                                & EPYC 7452         & Zen 2 (2019)              & 155 & 2.35 & 32 \\
-                               & Ryzen 5600X       & Zen 3 (2020)              & 65 & 3.7 & 6 \\ \hline
+                               & Ryzen 5 5600X     & Zen 3 (2020)              & 65 & 3.7 & 6 \\ \hline
     \end{tabular}
     \end{center}
     \caption{Information about each of the CPUs we evaluate. All except the Ryzen 3 1200 have 2-way SMT ("hypertheads" in Intel terminology).}
@@ -61,7 +61,7 @@ Since variability within runs frequently exceed the total overheads we are measu
 \end{figure}
 
 
-LEBench~\cite{ren:lebench} is a collection of microbenchmarks for measuring specific operating system operations.\footnote{We use the version of the LEBench benchmarks distributed with the \textsc{ward} system~\cite{behrens:ward} to align with experiments from elsewhere in this thesis.}
+LEBench~\cite{ren:lebench} is a collection of microbenchmarks for measuring specific operating system operations.\footnote{To align with experiments from elsewhere in this thesis, we use the version of the LEBench benchmarks distributed with \sys~\cite{behrens:ward} .}
 In this experiment, we track the geometric mean of benchmarks from the suite.
 As seen in Figure~\ref{fig:lebench} the overhead has decreased sharply for newer processors:
 CPUs which incorporate hardware mitigations (for Intel) or from a vendor whose CPUs were not vulnerable to all attacks in the first place (AMD) exhibit substantially smaller overheads.
@@ -92,9 +92,17 @@ It does so to provide stronger sandboxing of JavaScript execution.
 Intel has reserved a bit in in the \texttt{ARCH\_CAPABILITIES} model-specific register to indicate that a given processor isn't vulnerable to Speculative Store Bypass and therefore that the associated mitigation is neither needed nor implemented.
 However, we do not know of any CPUs for either vendor that set that bit, not even models that came out years after the attack was discovered.
 
+\subsection{Virtual Machine Workload}
+
+We also measure the performance of running LEBench inside of a KVM virtual machine with and without host mitigations enabled.
+This lets us see whether mitigations on the host impact performance observed by the guest.
+
+In our experiments the measured overhead was $\pm 3$\% on all systems, signalling that the mitigations applied by a virtual machine monitor do no significantly impact the performance here.
+\todo{Expand this a bit}
+
 \subsection{Swaptions}
 \label{sec:parsec}
-As a third benchmark we measure the overhead of running swaptions, one of the benchmarks from the PARSEC suite.
+As a final benchmark we measure the overhead of running swaptions, one of the benchmarks from the PARSEC suite.
 It involves neither significant numbers of calls into the operating system nor user-level sandboxing, as explored by the previous benchmarks, which makes it ideal to measure the impact solely of ``always on'' mitigations that the OS applies to running processes.
 
 We are unable to observe any meaningful difference between running with and without the default set of mitigations.

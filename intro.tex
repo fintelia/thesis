@@ -5,7 +5,7 @@ These attacks -- termed transient execution attacks -- exploit details of how mo
 
 Transient execution attacks represent a concern for operating system developers because a key security responsibility for operating systems is to maintain isolation.
 In particular, multiple processes running on the same machine must not inadvertently leak information between one another.
-Production operating systems and other software vendors have deployed a range of software techniques devised to mitigate the impact of these attacks, but unfortunately they introduce significant performance trade offs.
+Production operating systems and other software vendors have deployed a range of software techniques devised to mitigate the impact of these attacks, but unfortunately they can introduce significant performance trade offs.
 
 The overhead caused by these mitigations is present on the many hundreds of millions vulnerable processors dating from before the discovery of the attacks, and also at least to some degree on all major commercial CPUs released after their discovery.
 This thesis both attempts to quantify how this overhead has evolved over subsequent generations of processors and presents an operating system design to reduce OS level overheads on the CPUs where they are most severe.  
@@ -77,7 +77,7 @@ For other attacks, performant hardware mitigations remain an active area of rese
 
 \section{Evolution of Mitigation Cost}
 Mitigations for transient execution attacks can introduce significant performance impacts.
-For instance, the KAISER patches to mitigate Meltdown cause system calls to be up to 8$\times$ slower, while flushing microarchitural buffers to avoid MDS can add thousands of cycles to every context switch.
+For instance, the patches to mitigate Meltdown cause system calls to be up to 8$\times$ slower, while flushing microarchitural buffers to avoid MDS can add thousands of cycles to every context switch.
 One goal of this thesis is to gain a detailed understand of how much cost the various mitigations incur across vendors and generations of processors.
 
 We survey the cost of mitigations across multiple processor generations and across the two main vendors for x86 processors.
@@ -121,9 +121,9 @@ mitigations for Spectre V2, this thesis also contributes a new technique to meas
 speculation using ideas from Bölük~\cite{speculating-x86}.
 
 Another contribution is articulating the Unmapped Speculation Contract, which describes upper limits of what speculative execution attacks can and cannot do. 
-And to demonstrate the benefits of the unmapped speculation contract,
-this thesis presents \sys{}, a novel kernel architecture that uses
-selective kernel memory mapping to avoid the costs of transient execution
+This thesis then demonstrates the benefits of the unmapped speculation contract
+by presenting \sys{}, a novel kernel architecture that uses
+selective kernel memory mapping to avoid some costly transient execution
 mitigations.
 
 \section{Outline}

@@ -7,7 +7,7 @@ This is because operating systems and applications have deployed mitigations to 
 Despite this highly visible impact on user experience, we know of no systematic study that quantifies what this overhead is for modern software stacks and how it may differ across generations of CPUs.
 
 To understand how performance has evolved, our experiments look at a range of processors including both some that predate the discovery of Spectre and Meltdown (but which are still in active use), newer ones which incorporate some mitigations, and even more recent models with still more mitigations.
-We evaluate five processors from Intel and three AMD processors, enabling us to compare across vendors.
+We evaluate five processors from Intel and three AMD processors so we can compare across vendors as well.
 
 We first consider the end-to-end impact of transient execution attacks.
 Across a range of benchmarks, we characterize the overhead caused by mitigations on each CPU and further attribute how much of the overall slowdown is caused by each individual mitigation.

@@ -11,7 +11,7 @@ Meltdown-type attacks exploit the processor's fault-handling logic to speculativ
 
 \subsubsection{Meltdown}
 The original Meltdown attack is caused by speculatively translating kernel addresses for supervisor pages even while running in user mode, which enables a user process to read any kernel memory mapped into its address space.
-Processors from Intel as well as some from IBM and ARM were vulnerable~\cite{intel:meltdown,ibm:speculation, arm:speculation}.
+At the time of discovery, existing processors from Intel as well as some from IBM and ARM were vulnerable~\cite{intel:meltdown,ibm:speculation, arm:speculation}.
 
 Software mitigations for Meltdown are expensive, requiring a page table
 switch on every user-kernel boundary crossing.  Processors made by other
@@ -40,7 +40,7 @@ Linux's mitigates LazyFP by always saving and restoring FPU state during context
 switches.  Amusingly, this mitigation actually speeds up certain workloads,
 because modern processors provide highly efficient instructions for saving and
 restoring this state (e.g., \texttt{xsaveopt})~\cite{lutomirski:lazyfp-perf}. As
-a result, the trap handling overhead of LazyFP is often higher.
+a result, the trap handling overhead is often higher than the cost of unconditionally saving and restoring the registers.
 
 % \subsubsection{System Register Bypass}
 % Certain processors will also speculatively let user space code execute reads of system registers.
@@ -77,7 +77,7 @@ It is commonly mitigated by replacing every indirect branch with a retpoline seq
 \subsubsection{Speculative Store Bypass}
 This attack---also known as Spectre V4---exploits store-to-load forwarding in modern processors to learn the contents of recently written memory locations.
 The only available mitigation is a processor mode called Speculative Store Bypass Disable (SSBD), but enabling it has severe negative performance impacts.
-Given the difficulty of exploiting Speculative Store Bypass and the considerable cost of SSBD, by default the mitigation is only used by Linux for processes that specifically opt in to it via \texttt{prctl} or \texttt{seccomp}.
+Given the difficulty of exploiting Speculative Store Bypass and the considerable cost of mitigating it, by default SSBD is only used by Linux for processes that specifically opt in to it via \texttt{prctl} or \texttt{seccomp}.
 
 \subsection{Microarchitectural Data Sampling (MDS)}
 Microarchitectural Data Sampling describes class of attacks involving leaks from various microarchitectural buffers within the CPU.
