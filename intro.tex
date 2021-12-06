@@ -62,7 +62,10 @@ Meanwhile Meltdown type attacks achieve the same effect using a trapping operati
 Finally, Microarchitural Data Sampling exploits the processor's forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
 
 \section{Mitigation Approaches}
-\subsection{Software}
+
+There are two main approaches to preventing these attacks: either by modifying software, or altering the CPU design.
+
+\noindent\textbf{Software:}
 As the embargo period wound down on the original Meltdown and Spectre attacks, operating system vendors and processor makers hurriedly rolled out patches to mitigate these vulnerabilities.
 The patches came at a significant performance cost. 
 
@@ -70,7 +73,7 @@ These fixes took two forms.
 Hardware vendors released microcode patches for existing processors which modified behavior and added some new functionality to control speculative execution~\cite{intel:l1tf}.
 Meanwhile, operating system makers and other software vendors deployed new versions which blocked the attacks via a combination of software only techniques~\cite{intel:retpoline, linux:kpti} and leveraging the functionality added by microcode~\cite{intel:l1tf}.
 
-\subsection{Hardware}
+\noindent\textbf{Hardware:}
 Software and microcode approaches to preventing transient execution attacks are severely constrained compared to what is possible by modifying CPU designs themselves.
 For some attacks, straightforward architectural changes completely eliminate the vulnerability with almost no performance overhead and are already deployed in commercially available CPUs.
 For other attacks, performant hardware mitigations remain an active area of research~\cite{OISA, ConTExT}.
@@ -120,7 +123,7 @@ microbenchmarking of individual mitigations.  To analyze hardware
 mitigations for Spectre V2, this thesis also contributes a new technique to measure
 speculation using ideas from Bölük~\cite{speculating-x86}.
 
-Another contribution is articulating the Unmapped Speculation Contract, which describes upper limits of what speculative execution attacks can and cannot do. 
+Another contribution is articulating the Unmapped Speculation Contract, which describes upper limits of what speculative execution attacks can and cannot do.
 This thesis then demonstrates the benefits of the unmapped speculation contract
 by presenting \sys{}, a novel kernel architecture that uses
 selective kernel memory mapping to avoid some costly transient execution

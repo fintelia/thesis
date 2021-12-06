@@ -96,9 +96,9 @@ However, we do not know of any CPUs for either vendor that set that bit, not eve
 
 We also measure the performance of running LEBench inside of a KVM virtual machine with and without host mitigations enabled.
 This lets us see whether mitigations on the host impact performance observed by the guest.
-
 In our experiments the measured overhead was $\pm 3$\% on all systems, signalling that the mitigations applied by a virtual machine monitor do no significantly impact the performance here.
-\todo{Expand this a bit}
+Some runs suggested a slowdown in the range of 1-3\%, but our methodology resulted in too much variability between runs to be confident whether or not that was caused by noise. 
+In any case, we were unable to attribute the slowdown to specific mitigations.
 
 \subsection{Swaptions}
 \label{sec:parsec}
