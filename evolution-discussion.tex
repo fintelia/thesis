@@ -44,4 +44,4 @@ Since it is safe to simultaneously run two mutually trusting processes
 on hyperthread pairs, a more sophisticated scheduling policy could
 ensure that only processes that are safe to collocate
 are assigned to adjacent logical processors.
-
+One complexity with this strategy is protecting the kernel from snooping by a process running on one hyperthread pair while the other hyperthread is executing a system call.

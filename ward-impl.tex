@@ -98,13 +98,13 @@ complete source code.  For Spectre V2, we compile \sys to use retpolines
 (by specifying the ``-mretpoline-external-thunk'' flag to \texttt{clang}). \sys
 also uses Linux's \texttt{FILL\_RETURN\_BUFFER} macro to fill the
 return stack buffer, and issues an indirect branch predictor barrier
-\texttt{IBPB} instruction on a context switch. For Spectre V3, \sys uses
+\texttt{IBPB} instruction on a context switch. For Meltdown, \sys uses
 separate page tables (as described in \autoref{ss:overview}) and uses
 process-context identifiers (\texttt{PCID}s) to avoid TLB flushes.
 
 For Spectre V4, \sys issues an \texttt{lfence} on context switch. (If
 \sys supported generating code at runtime, the JITs would also have to
-be hardened.)  For LazyFPU, \sys uses the \texttt{xsaveopt}
+be hardened.)  For LazyFP, \sys uses the \texttt{xsaveopt}
 instruction to safe/restore floating point state.  For SpectreRSB,
 \sys fills the return stack buffer on context switch.  For L1TF, \sys
 avoids invalid PTEs. Like Linux, \sys doesn't address PortSmash; the

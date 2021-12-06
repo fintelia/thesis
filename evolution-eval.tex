@@ -10,7 +10,7 @@ To achieve precise timings, we rely on the timestamp counter functionality avail
 
 \subsection{Meltdown}
 
-On LEBench, Meltdown accounts for one of the most substantial performance impacts, singlehandedly causing an around 10\% increase in the overall runtime.
+On LEBench, Meltdown accounts for one of the most substantial performance impacts, singlehandedly causing an around 10\% overhead on its own.
 On processors vulnerable to Meltdown, production operating systems use page table isolation (PTI) to mitigate it.
 This approach adds significant overhead to every user-kernel boundary crossing, because it requires switching the page tables every time via a \texttt{mov} to the \texttt{\%cr3} register.
 Among the systems we evaulated, only Broadwell and Skylake are vulnerable to Meltdown.
@@ -118,9 +118,9 @@ Table~\ref{table:retpoline} shows extra cycles of each of these variations acros
 One noticeable takeaway is that IBRS adds tens of cycles of overhead to indirect branches except on processors with eIBRS support (Cascade Lake and the two Ice Lake CPUs) where it is inexpensive.
 Retpolines however can be as or even more costly.
 
-The two AMD processors have difference performance executing AMD
-retpolines: on the older Zen 2 model they incur no overhead compared to a
-normal indirect branch, and on the Zen 3 processor they are even
+The AMD processors have different performance executing AMD
+retpolines: on the Zen 2 model we measure no overhead compared to a
+normal indirect branch, while the other AMD processors they are even
 slower than a generic retpoline.
 
 %The main takeaway is consistent with the LEBench results: mitigation costs have remained small but non-trivial across processor generations.
@@ -142,7 +142,7 @@ slower than a generic retpoline.
                          & Zen 3               & 23 & +19 & +13 & +18 \\ \hline
 \end{tabular}
 \end{center}
-\caption{Cycles to perform an indirect branch with either no mitigations, IBRS enabled, using generic retpolines, or using AMD retpolines.}
+\caption{Baseline cycles to perform an indirect branch, and the added cost of doing indirect branches with IBRS enabled, the added cost of an indirect branch via a generic repoline, and via an AMD retpoline.}
 \label{table:retpoline}
 \end{table}
 
@@ -150,7 +150,7 @@ slower than a generic retpoline.
 
 In addition to preventing indirect branches in the kernel from being
 hijacked, it is also important that one user process cannot launch a Spectre V2 attack against another process.
-To prevent this attack, on every context switch between processes the operating system runs an Indirect Branch Prediction Barrier, which clears the branch target buffer.
+To prevent this attack, on every context switch between processes the operating system runs an Indirect Branch Prediction Barrier to clear the branch target buffer.
 
 We verified across all our processors that executing an IBPB between poisoning the branch target buffer and performing an indirect branch prevents execution from being routed to the attacker-controlled target.
 Oddly, however, we noticed that the performance counters report that indirect branches executed after an IBPB result in mispredictions.
@@ -161,6 +161,7 @@ declined over time from many thousands of cycles on our Broadwell
 server to hundreds of cycles on Cascade Lake and Ice Lake Server.
 This improvement is likely related to the fact that older processors implemented IBPB via a microcode patch, whereas newer ones may have some amount of support in hardware.
 Our Ice Lake Client processor somewhat bucks the trend of improving performance when compared to the earlier Cascade Lake, but still requires many fewer cycles than Broadwell or Skylake.
+AMD processors we tested show a similar improvement across generations.
 
 \begin{table}[h]
     \begin{center}
@@ -194,8 +195,8 @@ Secondly, when context switching between different user threads Linux will fill 
 This is required so that any interrupted retpoline sequence will avoid jumping to any Spectre gadgets---meaning that despite not causing a speculative jump to the intended retpoline landing point, it will still produce safe results.
 
 Table~\ref{table:rsb-fill} shows the cycles required to fill the return stack buffer on each processor.
-There is improvement across generations of Intel processors with our two AMD CPUs roughly equal.
-These improvements are likely realized more by improving performance overall
+There is improvement across generations of Intel processors but less of a clear trend across the AMD CPUs.
+These changes are likely realized more by improving performance overall
 than trying to optimize for return stack buffer filling specifically, but regardless, the cost of these mitigations is relatively minor compared to the total overhead of doing a context switch between processes.
 
 \begin{table}[h]
@@ -283,6 +284,7 @@ The compromise reached by the Linux developers was to enable SSBD only for proce
 To see the full impact of this mitigation if enabled all the time, we measured the slowdown it causes to the swaptions benchmark from PARSEC.
 Figure~\ref{fig:ssbd} shows that the slowdown ranges from 7\% to 34\%,
 and is trending worse over time.
+It isn't entirely clear why this would be the case, but it may be related to newer processors have a more complete SSBD implementation compared to what was possible via microcode patches.
 These overheads are especially considerable given that the combined
 impact of all default mitigations for this benchmarks is well under one percent (\S\ref{sec:parsec}).
 
@@ -295,12 +297,11 @@ impact of all default mitigations for this benchmarks is well under one percent 
 \subsection{L1 Terminal Fault}
 One other attack worth mentioning is L1 Terminal Fault, which can leak the entire contents of the L1 cache when page tables contain PTEs with certain bit patterns.
 
-Linux avoids ever creating such PTEs (and the changes required to ensure that cause essentially no overhead).
+Linux avoids ever creating such PTEs (which can be done with essentially no overhead).
 However, the problem is more severe when virtual machines are involved because an untrusted guest operating system could insert such specially crafted PTEs into its own page table.
 Doing so would enable it to learn L1 cache contents lingering from memory accesses done by the host, and so the necessary mitigation on vulnerable processors is for the host to flush the L1 cache prior to entering a guest virtual machine.
 
-This attack did not show up in our prior benchmarks because it only impacts workloads involving virtual machines.
-It has also been patched on newer processors, so the impact should be minimal going forward.
+Our benchmarking of virtual machine workloads did not show any measurable impact from enabling this mitigation and it has also been patched on newer processors, so the relevance should be minimal going forward.
 
 \subsection{Other attacks}
 

@@ -4,7 +4,7 @@ Watching the stream of new transient execution attacks being published might not
 
 One aspect in particular that that gets overlooked is that production operating systems don't try to provide perfect isolation in the first place.
 This is a challenge for the security community because it is much harder to model, but a tremendous opportunity to the systems community that can ignore low severity side channels (or accept incomplete fixes for more severe ones).
-It means that the intervention proposed to mitigate a specific side channel attack it its creator might not be deemed excessive by the developer community.
+It means that the intervention proposed to mitigate a specific side channel attack by its creator might be deemed excessive by the developer community.
 
 One example is disabling hyperthreading.
 While theoretically necessary to mitigate certain attacks, Linux by default choses to just ignore that advice and run mutually untrusting processes on adjacent hyperthreads.
@@ -29,4 +29,4 @@ JIT compilers can readily insert appropriate bounds check instructions and specu
 However, existing processors are not tuned to accelerate these code patterns, so the cumulative impact of running them thousands or millions of times can have a detrimental impact on performance.
 This doesn't need to be the case!
 The computer architecture community has already studied ways for a CPU to perform memory operations without introducing Spectre gadgets.
-Those techniques are painfully slow when applied to every memory operating in a program, but could be far more reasonable when applied only to memory instructions flagged by the JIT.
+Those techniques are painfully slow when applied to every memory operation in a program, but could be far more reasonable when applied only to memory instructions flagged by the JIT.

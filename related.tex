@@ -3,7 +3,7 @@
 This thesis is motivated by the papers that show how secret kernel data
 can be leaked through micro-architectural state, which started with the discovery of Meltdown~\cite{lipp:meltdown} and the original Spectre~\cite{kocher:spectre} variants.
 These were rapidly followed by the discovery of more attacks targeting transient execution, including MDS~\cite{canella:fallout,schwarz:zombieload,schaik:ridl}, Speculative Store Bypass~\cite{horn:speculative-store-bypass}, and many others~\cite{bhattacharyya:smotherspectre,bulck:foreshadow,chen:sgxspectre,koruyeh:spectrersb,ragab:crosstalk,stecklina:lazyfp,schaik:cacheout,weisse:foreshadow-ng, bulck:lvi}.
-Two survey papers were helpful by categorizing the known attacks~\cite{hill:survey,sok:transient,xiong:survey}.
+Several survey papers were helpful by categorizing the known attacks~\cite{hill:survey,sok:transient,xiong:survey}.
 
 We rely heavily on the mitigation work in the Linux
 community~\cite{linux:vuln}. \sys adopts Linux's techniques and their

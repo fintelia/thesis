@@ -202,11 +202,7 @@ memory across hardware threads.
 \paragraph{Benefits of the USC.}
 
 The contract helps reconcile security and performance of speculative
-execution.  On the one hand, hardware can keep the high performance
-provided by out-of-order execution, because the contract allows almost
-all forms of speculative execution, as long as data during speculative
-execution is accessed through non-speculative TLB entries.  On the
-other hand, software can precisely specify what data can and cannot
+execution.  It enables software to precisely specify what data can and cannot
 be used for speculative execution, by configuring page
 tables.  For example, if the mapped pages never contain sensitive data,
 then no mitigations are needed to defend against transient execution
@@ -286,10 +282,10 @@ attacks such as some variants of Spectre and MDS.
 \midrule
 
 Spectre variants & \multirow{5}{0.75in}{Memory} & Yes & Yes\\
-Meltdown & & Yes & Yes (microcode)\\
+Meltdown & & Yes & Yes\\
 MDS & & Yes & Yes\\
 PortSmash & & Yes & Yes\\
-L1TF & & Yes & Yes (microcode)\\
+L1TF & & Yes & Yes\\
 
 \midrule
 
