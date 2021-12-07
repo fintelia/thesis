@@ -282,10 +282,10 @@ attacks such as some variants of Spectre and MDS.
 \midrule
 
 Spectre variants & \multirow{5}{0.75in}{Memory} & Yes & Yes\\
-Meltdown & & Yes & Yes\\
+Meltdown & & Yes & Yes (depending on PTE contents)\\
 MDS & & Yes & Yes\\
 PortSmash & & Yes & Yes\\
-L1TF & & Yes & Yes\\
+L1TF & & Yes & Yes (depending on PTE contents)\\
 
 \midrule
 
@@ -317,10 +317,12 @@ contents.
 There are two special cases:
 Meltdown and L1TF.  When originally discovered, these attacks bypassed
 the page table protections and allowed an adversary to obtain the
-contents of memory that was not mapped.  In both of these cases, the
+contents of memory that was not mapped.
+Subsequent guidance clarified that the \contract still holds in these
+cases provided that software avoids certain bit patterns in page table entries.
+In both of these cases, the
 hardware manufacturer (Intel) considered them to be hardware bugs, as
-evidenced by the fact that both of them were fixed through hardware and
-microcode revisions~\cite{intel:meltdown, intel:l1tf}, as confirmed by
+evidenced by the fact that both of them were fixed in subsequent CPU generations~\cite{intel:meltdown, intel:l1tf}, as confirmed by
 Canella et al.~\cite{sok:transient}.\footnote{Canella et al. state that
 some variants of the Meltdown attack, such as Meltdown-BR, are still
 possible even with the most recent microcode.  Those variants, however,
