@@ -1,6 +1,39 @@
 \section{Attacks and Mitigations}
 \label{s:background}
 
+\begin{table}[h]
+    \begin{center}
+    \begin{tabular}{llllllllll} 
+      \textbf{Attack} & \textbf{Mitigation} 
+          & \rotatebox[origin=l]{90}{\textbf{Broadwell}}
+          & \rotatebox[origin=l]{90}{\textbf{Skylake Client}}
+          & \rotatebox[origin=l]{90}{\textbf{Cascade Lake}}
+          & \rotatebox[origin=l]{90}{\textbf{Ice Lake Client}}
+          & \rotatebox[origin=l]{90}{\textbf{Ice Lake Server}}
+          & \rotatebox[origin=l]{90}{\textbf{Zen}}
+          & \rotatebox[origin=l]{90}{\textbf{Zen 2}}
+          & \rotatebox[origin=l]{90}{\textbf{Zen 3}} \\ \hline 
+      Meltdown                    & Page Table Isolation   & \checkmark & \checkmark & & & \\ \hline
+      \multirow{2}{*}{L1TF}       & PTE Inversion          & \checkmark & \checkmark & & & \\
+                                  & Flush L1 Cache         & \checkmark & \checkmark & & & \\ \hline
+      LazyFP                      & Always save FPU        & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\ \hline
+      \multirow{2}{*}{Spectre V1} & Index Masking          & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+                                  & lfence after swapgs    & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\ \hline
+      \multirow{6}{*}{Spectre V2} & Generic Retpoline       & \checkmark & \checkmark & & & \\
+                                  & AMD Retpoline       & & & & & & \checkmark & \checkmark & \checkmark \\
+                                  & IBRS            & & & & &  \\
+                                  & Enhanced IBRS   & & & \checkmark & \checkmark & \checkmark \\
+                                  & RSB Stuffing    & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+                                  & IBPB            &  \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\ \hline
+      Spec. Store Bypass          & SSBD            & ! & ! & ! & ! & ! & ! & ! & ! \\ \hline
+      \multirow{2}{*}{MDS}        & Flush CPU Buffers & \checkmark & \checkmark & \checkmark & & \\
+                                  & Disable SMT       & ! & ! & ! & & \\ \hline
+    \end{tabular}
+    \end{center}
+    \caption{Default mitigations used by Linux on each processor. A \checkmark in a given cell means the mitigation used, while an empty space means it isn't required. In some cases, preventing an attack requires some mitigation that isn't enabled by default, which is indicated by a ! symbol. }
+    \label{table:mitigation-list}
+  \end{table}
+
 We consider attacks from the the perspective of how they affect end-user performance.
 %Our interest is in what mitigations are used by default to maintain an acceptable level of security and what performance impact they cause.
 This outlook differs from prior surveys like Canella, et al.~\cite{sok:transient} which focus on enumerating and classifying the space of possible attacks.
