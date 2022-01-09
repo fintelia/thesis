@@ -3,12 +3,12 @@ Side channel attacks leak information between isolation domains outside of the n
 Several years ago a new class of side channel attacks was discovered impacting CPUs from all major vendors~\cite{lipp:meltdown, kocher:spectre}.
 These attacks -- termed transient execution attacks -- exploit details of how modern processors use speculative execution to run more quickly. 
 
-Transient execution attacks represent a concern for operating system developers because a key security responsibility for operating systems is to maintain isolation.
-In particular, multiple processes running on the same machine must not inadvertently leak information between one another.
-Production operating systems and other software vendors have deployed a range of software techniques devised to mitigate the impact of these attacks, but unfortunately they can introduce significant performance trade offs.
+Transient execution attacks represent a concern for software developers because maintaining isolation is a key security responsibility for many kinds of software.
+For instance, an operating system must not allow multiple processes running on the same machine to inadvertently leak information between one another, and a web browser must ensure that JavaScript running for one website cannot access state belonging to other sites.
+Software vendors have deployed a range of techniques devised to mitigate the impact of these attacks, but unfortunately they can introduce significant performance trade offs.
 
-The overhead caused by these mitigations is present on the many hundreds of millions vulnerable processors dating from before the discovery of the attacks, and also at least to some degree on all major commercial CPUs released after their discovery.
-This thesis both attempts to quantify how this overhead has evolved over subsequent generations of processors and presents an operating system design to reduce OS level overheads on the CPUs where they are most severe.  
+The overhead caused by these mitigations is present on vulnerable processors dating from before the discovery of the attacks and also at least to some degree on all major commercial CPUs released after their discovery.
+This thesis both attempts to quantify how this overhead has evolved over subsequent generations of processors, and since pre-Spectre processors will remain in use for years to come, presents an operating system design to reduce OS level overheads those CPUs.
 
 % Many hundreds of millions of vulnerable computer processors are currently in use, so simply replacing them all isn’t by itself a viable solution.
 % Worse still, computer architectural approaches to solve transient execution attacks remains an open area of research, except on the simplest of processors.
@@ -56,27 +56,29 @@ Eventually the branch misprediction will be discovered and rolled back, but the 
 This enables the attacker to later time how long it takes to access each cache entry and infer which value must have been pulled in by the victim application.
 
 \subsection{Other Attacks}
-There are a whole range of other transient execution attacks which can be divided into three categories~\cite{hill:survey}.
-Spectre type attacks like the one described above rely on processor misprediction to incompletely roll back executed instructions.
-Meanwhile Meltdown type attacks achieve the same effect using a trapping operation to trigger the roll back.
-Finally, Microarchitural Data Sampling exploits the processor's forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
+There are a whole range of other transient execution attacks which can be divided into three broad categories~\cite{hill:survey}:
+\begin{itemize}
+\item \textbf{Spectre type} attacks like the one described above rely on processor misprediction to incompletely roll back executed instructions.
+\item \textbf{Meltdown type} attacks achieve the same effect using a trapping operation to trigger the roll back.
+\item \textbf{Microarchitural Data Sampling (MDS) type} attacks exploit the processor's forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
+\end{itemize}
 
-\section{Mitigation Approaches}
+% \section{Mitigation Approaches}
 
-There are two main approaches to preventing these attacks: either by modifying software, or altering the CPU design.
+% There are two main approaches to preventing these attacks: either by modifying software, or altering the CPU design.
 
-\noindent\textbf{Software:}
-As the embargo period wound down on the original Meltdown and Spectre attacks, operating system vendors and processor makers hurriedly rolled out patches to mitigate these vulnerabilities.
-The patches came at a significant performance cost. 
+% \noindent\textbf{Software:}
+% As the embargo period wound down on the original Meltdown and Spectre attacks, operating system vendors and processor makers hurriedly rolled out patches to mitigate these vulnerabilities.
+% The patches came at a significant performance cost. 
 
-These fixes took two forms.
-Hardware vendors released microcode patches for existing processors which modified behavior and added some new functionality to control speculative execution~\cite{intel:l1tf}.
-Meanwhile, operating system makers and other software vendors deployed new versions which blocked the attacks via a combination of software only techniques~\cite{intel:retpoline, linux:kpti} and leveraging the functionality added by microcode~\cite{intel:l1tf}.
+% These fixes took two forms.
+% Hardware vendors released microcode patches for existing processors which modified behavior and added some new functionality to control speculative execution~\cite{intel:l1tf}.
+% Meanwhile, operating system makers and other software vendors deployed new versions which blocked the attacks via a combination of software only techniques~\cite{intel:retpoline, linux:kpti} and leveraging the functionality added by microcode~\cite{intel:l1tf}.
 
-\noindent\textbf{Hardware:}
-Software and microcode approaches to preventing transient execution attacks are severely constrained compared to what is possible by modifying CPU designs themselves.
-For some attacks, straightforward architectural changes completely eliminate the vulnerability with almost no performance overhead and are already deployed in commercially available CPUs.
-For other attacks, performant hardware mitigations remain an active area of research~\cite{OISA, ConTExT}.
+% \noindent\textbf{Hardware:}
+% Software and microcode approaches to preventing transient execution attacks are severely constrained compared to what is possible by modifying CPU designs themselves.
+% For some attacks, straightforward architectural changes completely eliminate the vulnerability with almost no performance overhead and are already deployed in commercially available CPUs.
+% For other attacks, performant hardware mitigations remain an active area of research~\cite{OISA, ConTExT}.
 
 \section{Evolution of Mitigation Cost}
 Mitigations for transient execution attacks can introduce significant performance impacts.
@@ -102,9 +104,11 @@ Our experiments show meaningful variations between processors in how long indivi
 The outcome of this investigation explains why overheads to prevent transient execution attacks have significantly declined for some workloads: the overhead of the different software mitigations haven't changed much but the improvements are explained by hardware changes that removed the need for a few of the most expensive mitigations.
 
 \section{Ward}
-For processors which currently require expensive operating system level software mitigations, we present \sys, an operating system architecture which achieves similar security guarantees to traditional OSes equiped with those mitigations but incurs substantially lower overhead.
-%Ward particularly identifies KPTI~\cite{linux:kpti} (Linux's chosen defense against Meltdown) as a key source of overhead.
-\sys has a novel operating system architecture which is resilient to transient execution attacks, yet avoids many of the expensive software mitigations that existing operating systems employ when running on older processors. 
+Many processors designed prior to the discovery of transient execution attacks require especially expensive operating system level software mitigations.
+These CPUs will remain in use for years to come, so they cannot simply be ignored.
+%\sys is an operating system architecture designed for such processors.
+%It achieves similar security guarantees to traditional OSes equiped with software mitigations but incurs substantially lower overhead.
+\sys is a novel operating system architecture which is resilient to transient execution attacks, yet avoids much of the overhead caused by software mitigations when running on these older processors. 
 
 In \sys, the operating system kernel is divided into multiple domains.
 The K-domain includes all information accessible to the operation system, while each process has its own associated Q-domain consisting only of the userspace memory and kernel space data structures related to that one process.
@@ -115,19 +119,16 @@ And since \sys is able to handle many system calls and traps entirely in the Q-d
 
 \section{Contributions}
 
-One primary contribution of this work is to draw attention to the
-performance critical areas for improving transient execution
-mitigations, driven by (1) an end-to-end survey of how mitigation
-costs have evolved over processor generations, and (2) detailed
-microbenchmarking of individual mitigations.  To analyze hardware
-mitigations for Spectre V2, this thesis also contributes a new technique to measure
-speculation using ideas from Bölük~\cite{speculating-x86}.
+One primary contribution of this work is to draw attention to the performance critical areas for improving transient execution mitigations, driven by 
+(1) a survey mapping end-to-end overheads to the specific mitigations that cause them, and 
+(2) detailed microbenchmarking of individual mitigations.
+To analyze hardware mitigations for Spectre V2, this thesis also contributes a new technique to measure speculation using ideas from Bölük~\cite{speculating-x86}.
 
 Another contribution is articulating the Unmapped Speculation Contract, which describes upper limits of what speculative execution attacks can and cannot do.
 This thesis then demonstrates the benefits of the unmapped speculation contract
 by presenting \sys{}, a novel kernel architecture that uses
-selective kernel memory mapping to avoid some costly transient execution
-mitigations.
+selective kernel memory mapping to avoid some of the costly transient execution
+mitigations required on older Intel processors.
 
 \section{Outline}
 The following chapter presents an end-to-end performance evaluation, and then goes into detail on each major attack describing both background on how it works as well as analyzing its impact on each evaluated system.

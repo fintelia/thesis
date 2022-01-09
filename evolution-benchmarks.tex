@@ -117,3 +117,11 @@ Each of these benchmarks plots a very different trajectory of mitigation costs.
 Workloads that stress the operating system interface have received the most attention, and overheads on LEBench have gone from over 30\% on older Intel CPUs to under 3\% on the latest models from both vendors.
 By contrast, JavaScript overhead has been consistently in the range of 15\% to 25\%, with the newest AMD processor we tested paying an even larger cost.
 Our compute-intensive benchmark has negligible overhead regardless of the processor.
+
+Preventing Spectre V1 has been a significant goal for computer architecture research, but interestingly software mitigations for it had no measurable impact on LEBench performance.
+By contrast, they account for nearly half the overhead on the browser workload.
+
+It is also worth pointing out that all three attacks with significant overhead on new processor are actually quite old.
+Spectre V1 and Spectre V2 were the first transient execution attacks discovered (along with Meltdown which was discovered at the same time) while Speculative Store Bypass followed only a matter of months later.
+Over the subsequent three years of transient execution attack discoveries, they've all either been quickly resolved in hardware or had a negligible cost to mitigate in software.
+This paints an optimistic outlook for the future.
