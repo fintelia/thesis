@@ -4,7 +4,7 @@ Several years ago a new class of side channel attacks was discovered impacting C
 These attacks -- termed transient execution attacks -- exploit details of how modern processors use speculative execution to run more quickly. 
 
 Transient execution attacks represent a concern for software developers because maintaining isolation is a key security responsibility for many kinds of software.
-For instance, an operating system must not allow multiple processes running on the same machine to inadvertently leak information between one another, and a web browser must ensure that JavaScript running for one website cannot access state belonging to other sites.
+For instance, an operating system must not allow multiple processes running on the same machine to inadvertently leak information between one another, and web browsers must ensure that JavaScript running on one website cannot access state belonging to other sites.
 Software vendors have deployed a range of techniques devised to mitigate the impact of these attacks, but unfortunately they can introduce significant performance trade offs.
 
 The overhead caused by these mitigations is present on vulnerable processors dating from before the discovery of the attacks and also at least to some degree on all major commercial CPUs released after their discovery.
@@ -19,7 +19,7 @@ This thesis both attempts to quantify how this overhead has evolved over subsequ
 
 \section{Transient Execution Attacks}
 \subsection{Speculative Execution}
-Speculative execution is an optimization used in the design of modern processors to drastically improve their performance, by enabling them to do useful work during times when they would otherwise be stalled waiting to load information from RAM.
+Speculative execution is an optimization used in the design of modern processors to drastically improve their performance, by enabling them to do useful work during times when they would otherwise be stalled waiting to load information from memory.
 When the CPU reaches a conditional branch instruction that it doesn't yet know whether will be taken or not, it predicts the outcome and then starts executing instructions that would follow.
 The prediction is based on prior executions of that same instructions and any other heuristics the processor may have.
 
@@ -44,7 +44,7 @@ The attack relies on a specific sequence of instructions (a ``gadget'') to be lo
 The gadget consists of a bounds check followed by two array accesses as shown in Figure~\ref{fig:spectre-code}, for which the index value can be controlled by the adversary.
 
 To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes.
-This will train the CPU branch predictor that the branch is usually taken.
+This trains the CPU branch predictor that the branch is usually taken.
 Then, the attackers forces the array size to be evicted from the CPU cache and calls the gadget with an out of bounds index.
 
 When execution reaches the bounds check, the processor will initiate a load to read the array size.
@@ -82,7 +82,7 @@ There are a whole range of other transient execution attacks which can be divide
 
 \section{Evolution of Mitigation Cost}
 Mitigations for transient execution attacks can introduce significant performance impacts.
-For instance, the patches to mitigate Meltdown cause system calls to be up to 8$\times$ slower, while flushing microarchitural buffers to avoid MDS can add thousands of cycles to every context switch.
+%For instance, the patches to mitigate Meltdown cause system calls to be up to 8$\times$ slower, while flushing microarchitural buffers to avoid MDS can add thousands of cycles to every context switch.
 One goal of this thesis is to gain a detailed understand of how much cost the various mitigations incur across vendors and generations of processors.
 
 We survey the cost of mitigations across multiple processor generations and across the two main vendors for x86 processors.
@@ -91,14 +91,14 @@ This enables us to understand both which costs are specific only to CPUs from a 
 %The first contribution of this thesis is quantify the performance cost of hardware mitigations changes made in response to the attacks across successive generations of processors designed both before and after the publication of these attacks.
 
 First, we run end-to-end benchmarks on each system measuring operating system and web-browser workloads.
-This is enough to derive some high level trends and get a sense for the cost of the configurable mitigations on each system.
+This is enough to derive some high level trends.
+However, by varying which mitigations are enabled, the overheads can also be attributed back to the specific mitigations that cause them.
 Our test systems vary on many dimensions unrelated to transient execution attacks (like core count, clock speed, and cache size) so our direct comparisons primary focus on relative differences between configurations of the same system.
 
-On workloads that stress the Linux kernel interface (which have received the most attention) we find there have been substantial improvements with overheads on LEBench going from over 30\% to less than 3\%.
+On workloads that stress the Linux kernel interface (which have received the most attention) we find there have been substantial improvements with overhead on LEBench going from over 30\% to less than 3\%, and all measured overhead now attributable to a single attack.
 By contrast, the performance of JavaScript applications running inside Firefox are impacted by an almost entirely different set of mitigations, which on the Octane 2 JavaScript benchmark has caused overhead to remain roughly flat at 20\%. 
 
-
-The bulk of our work is a detailed breakdown of individual attacks where we can investigate precise cycle costs.
+We also conduct a detailed breakdown of individual mitigation code sequences to investigate their precise cycle costs.
 For each mitigation identified by the end-to-end benchmarks, we attempt to measure execution time of the associated instruction or instruction sequence on each of our impacted systems.
 Our experiments show meaningful variations between processors in how long individual mitigations take, and demonstrate that some of the most costly are completed avoided on the newest CPUs. 
 The outcome of this investigation explains why overheads to prevent transient execution attacks have significantly declined for some workloads: the overhead of the different software mitigations haven't changed much but the improvements are explained by hardware changes that removed the need for a few of the most expensive mitigations.
