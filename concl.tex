@@ -7,8 +7,8 @@ measuring their overheads across several generation of Intel and AMD
 processors, and introduces the \sys kernel design which eliminates as much
 as half this overhead on OS heavy workloads.
 
-Overhead in the OS boundary has mostly been eliminated, but the browser boundary is still expensive.
-This means that, for most server workloads, the high mitigation overhead has been largely resolved.
+On new processors, overhead in the OS boundary has mostly been eliminated in hardware, but the browser boundary is still expensive.
+This means that, for most server workloads, the high mitigation costs have been largely resolved.
 At the same time, most overheads that still exist are caused by a small number of software mitigations, all addressing attacks which were discovered in 2018 or earlier.
 All attacks published since have mitigations with only minor performance impact.
 

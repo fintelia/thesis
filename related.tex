@@ -5,20 +5,18 @@ can be leaked through micro-architectural state, which started with the discover
 These were rapidly followed by the discovery of more attacks targeting transient execution, including MDS~\cite{canella:fallout,schwarz:zombieload,schaik:ridl}, Speculative Store Bypass~\cite{horn:speculative-store-bypass}, and many others~\cite{bhattacharyya:smotherspectre,bulck:foreshadow,chen:sgxspectre,koruyeh:spectrersb,ragab:crosstalk,stecklina:lazyfp,schaik:cacheout,weisse:foreshadow-ng, bulck:lvi}.
 Several survey papers were helpful by categorizing the known attacks~\cite{hill:survey,sok:transient,xiong:survey}.
 
-We rely heavily on the mitigation work in the Linux
-community~\cite{linux:vuln}. \sys adopts Linux's techniques and their
-optimized implementation in the K domain.  \sys uses, for example,
-Linux's \texttt{nospec} macro for bounds clipping,
-\texttt{FILL\_RETURN\_BUFFER} to fill the return buffer, and retpoline.
-\sys's hotpatching of its kernel text to remove retpolines in the Q
-domain was inspired by Linux's \textsc{alternative}
-macro~\cite{lwn:alternative}.
+Phoronix has conducted some of the most notable performance studies~\cite{phoronix:perf-zombieload, phoronix:two-years, phoronix:three-years}. A few other groups have conducted studies~\cite{nikolay:meltdown-spectre-performance,prout:measuring-spectre-meltdown} but those predate the most recent attacks.
+The Linux community has paid close attention to the cost of mitigations throughout, including for IBRS~\cite{linus:ibrs-rant},  KPTI~\cite{gregg:kpti-perfromance}, and MDS~\cite{phoronix:perf-zombieload}.
+Their work has played a role in both understanding and driving down the performance overheads.
 
-In addition to the software/microcode approach currently used by Linux and other other operating systems on older hardware, some of these attacks have been fixed in production hardware~\cite{intel:affected-processors}.
-Meanwhile known hardware techniques for addressing others require more substantial changes~\cite{barber:specshield, weisse:nda, ainsworth:muontrap,yu:stt,yu:sdo}, generally by somehow delaying the use of speculative data until it is safe.
+\section{Mitigation Approaches}
+
+Linux makes heavy use of software/microcode mitigations on older processors, but many attacks have now been fixed in production hardware~\cite{intel:affected-processors}.
+Meanwhile known hardware techniques for addressing other attacks require more substantial changes~\cite{barber:specshield, weisse:nda, ainsworth:muontrap,yu:stt,yu:sdo}, generally by somehow delaying the use of speculative data until it is safe.
 While such defenses are
 more comprehensive, they have higher overheads that impact performance whenever
-speculation occurs. By contrast, the \contract constrains speculation in a more
+speculation occurs.
+By contrast, the \contract constrains speculation in a more
 targeted way based on memory mappings. ConTExT also proposes constraining
 speculation based on memory mappings, but introduces a new PTE bit to explicitly
 mark pages that contain secret data~\cite{ConTExT}. \sys instead keeps secrets in
@@ -32,6 +30,18 @@ Swivel~\cite{narayan:swivel} is a compiler framework which hardens WASM bytecode
 Firefox's and Chrome's WASM engines rely on Site Isolation~\cite{reis:site-isolation}.
 Production JavaScript engines deploy more targeted mitigations like Pointer Poisoning and Index Masking~\cite{webkit:spectre-meltdown}, and also reduce the overall timer precision~\cite{mozilla:timer-precision, webkit:spectre-meltdown}.
 Compiler techniques like Speculative Load Hardening~\cite{carruth:slh} ensure binaries are completely immune to Spectre, albeit at considerable overhead.
+
+\section{\sys}
+
+We rely heavily on the mitigation work in the Linux
+community~\cite{linux:vuln}. \sys adopts Linux's techniques and their
+optimized implementation in the K domain.  \sys uses, for example,
+Linux's \texttt{nospec} macro for bounds clipping,
+\texttt{FILL\_RETURN\_BUFFER} to fill the return buffer, and retpoline.
+\sys's hotpatching of its kernel text to remove retpolines in the Q
+domain was inspired by Linux's \textsc{alternative}
+macro~\cite{lwn:alternative}.
+
 
 The Q page table is inspired by the shadow page table in
 KAISER~\cite{gruss:kaiser} and KPTI~\cite{linux:kpti}. In Linux, when
@@ -58,10 +68,6 @@ on traditional attacks (e.g., code execution through a buffer overflow)
 as opposed to transient execution.
 
 %Flush Conflict~\cite{weber:osiris} automated discovery
-
-Phoronix has conducted some of the most notable performance studies~\cite{phoronix:perf-zombieload, phoronix:two-years, phoronix:three-years}. A few other groups have conducted studies~\cite{nikolay:meltdown-spectre-performance,prout:measuring-spectre-meltdown} but those predate the most recent attacks.
-The Linux community has paid close attention to the cost of mitigations throughout, including for IBRS~\cite{linus:ibrs-rant},  KPTI~\cite{gregg:kpti-perfromance}, and MDS~\cite{phoronix:perf-zombieload}.
-Their work has played a role in both understanding and driving down the performance overheads.
 
 % Several survey papers~\cite{hill:survey,sok:transient,xiong:survey} classify attacks but not their performance impact, while LEBench~\cite{ren:lebench} explored how mitigations impacted performance across kernel versions.
 

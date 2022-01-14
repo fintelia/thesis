@@ -63,6 +63,17 @@ There are a whole range of other transient execution attacks which can be divide
 \item \textbf{Microarchitural Data Sampling (MDS) type} attacks exploit the processor's forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
 \end{itemize}
 
+\subsection{Attack Model}
+In more detail, a transient execution attack involves an attacker and victim application co-located on the same physical machine in which the attacker (i) guides speculative control flow to cause, (ii) an access to a victim secret, (iii) that is transmitted via a microarchitural covert channel, (iv) to a receiver running in the attacker's protection domain. 
+
+Exactly how each step is conducted varies between attacks.
+For instance, all sorts of different prediction structures within a modern CPU can be leveraged to reroute speculative control flow.
+And the access in (ii) can be performed via a gadget in victim application, or entirely using instructions located within the attacker application.
+
+Transient execution attacks are possible in setting with code running for two mutually distrusting entities on the same CPU.
+This can be a user application attacking the OS, a user application targeting other user applications, a guest OS exploiting the hypervisor, and so forth.
+
+
 % \section{Mitigation Approaches}
 
 % There are two main approaches to preventing these attacks: either by modifying software, or altering the CPU design.
@@ -81,11 +92,12 @@ There are a whole range of other transient execution attacks which can be divide
 % For other attacks, performant hardware mitigations remain an active area of research~\cite{OISA, ConTExT}.
 
 \section{Evolution of Mitigation Cost}
-Mitigations for transient execution attacks can introduce significant performance impacts.
+Mitigations for transient execution attacks can introduce significant performance impacts as surveys by Phoronix have demonstrated~\cite{phoronix:perf-zombieload, phoronix:two-years, phoronix:three-years}.
 %For instance, the patches to mitigate Meltdown cause system calls to be up to 8$\times$ slower, while flushing microarchitural buffers to avoid MDS can add thousands of cycles to every context switch.
-One goal of this thesis is to gain a detailed understand of how much cost the various mitigations incur across vendors and generations of processors.
+One goal of this thesis is to gain a more detailed understanding compared to prior work, including by measuring how specific mitigations impact performance across vendors and generations of processors.
+We also study internal javascript runtime mitigations (e.g., index masking) to understand whether the performance impact on browsers is different from operating systems.
 
-We survey the cost of mitigations across multiple processor generations and across the two main vendors for x86 processors.
+We survey across multiple processor generations and across the two main vendors for x86 processors.
 This enables us to understand both which costs are specific only to CPUs from a particular vendor as well as see trends in how costs are changing over time.
 
 %The first contribution of this thesis is quantify the performance cost of hardware mitigations changes made in response to the attacks across successive generations of processors designed both before and after the publication of these attacks.

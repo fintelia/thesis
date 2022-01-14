@@ -1,11 +1,18 @@
+\section{Analysis of Hardware Spectre V2 Mitigations}
+\label{s:analysis}
 
-\begin{figure}[h]
+For nearly all the attacks we've looked at so far, either the mitigation approach has remained the same across all the processor generations we've studied, or it has gone from an expensive software mitigation to a hardware fix with no measurable cost at all.
+Spectre V2 notably does not follow this trajectory.
+It has a multitude of hardware and software mitigations, yet remains a non-trivial expense on every CPU we've tested.
+In this section we attempt to understand under which conditions the
+Branch Target Buffer is used to speculatively execute instructions and when not.
+
+\begin{figure}[!ht]
 \begin{lstlisting}
 void victim_target() {
   int c = 12345 / 6789;
 }
 void nop_target() { /* do nothing */ }
-
 void(*target)();
 
 void test() {
@@ -47,16 +54,8 @@ bool divide_happened() {
 \caption{Sketch of our approach. The \texttt{test} function prints whether it was able to poison the branch target buffer to route speculative execution to \texttt{victim\_target}.}
 \label{fig:spectre2-sample}
 \end{figure}
-
-\section{Analysis of Hardware Spectre V2 Mitigations}
-\label{s:analysis}
-
-For nearly all the attacks we've looked at so far, either the mitigation approach has remained the same across all the processor generations we've studied, or it has gone from an expensive software mitigation to a hardware fix with no measurable cost at all.
-Spectre V2 notably does not follow this trajectory.
-It has a multitude of hardware and software mitigations, yet remains a non-trivial expense on every CPU we've tested.
-In this section we attempt to understand under which conditions the
-Branch Target Buffer is used to speculatively execute instructions and when not.
-
+\vfill
+\clearpage
 
 \subsection{Measuring Speculation}
 
@@ -101,7 +100,7 @@ However, to maximize the chance of success, we ensure all 64 bits match by shari
                            & Cascade Lake        &            & \checkmark & \checkmark & \checkmark & \checkmark \\ 
                            & Ice Lake Client   &            & \checkmark & \checkmark & \checkmark & \checkmark \\ 
                            & Ice Lake Server   &            & \checkmark & \checkmark & \checkmark & \checkmark \\ \hline
-    \multirow{3}{*}{AMD}   & Zen             & \textcolor{red}{X} & \textcolor{red}{X} & \textcolor{red}{X} & \textcolor{red}{X} & \textcolor{red}{X} \\
+    \multirow{3}{*}{AMD}   & Zen             & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
                            & Zen 2           & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
                            & Zen 3         &  &  &  &  & \\ \hline
   \end{tabular}
