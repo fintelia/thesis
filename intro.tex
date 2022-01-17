@@ -64,11 +64,10 @@ There are a whole range of other transient execution attacks which can be divide
 \end{itemize}
 
 \subsection{Attack Model}
-In more detail, a transient execution attack involves an attacker and victim application co-located on the same physical machine in which the attacker (i) guides speculative control flow to cause, (ii) an access to a victim secret, (iii) that is transmitted via a microarchitural covert channel, (iv) to a receiver running in the attacker's protection domain. 
+Based on the framework from Kiriansky, et al.~\cite{kiriansky:dawg} we can give a more precise definition: a transient execution attack involves an attacker and victim application co-located on the same physical machine in which the attacker (i) guides speculative control flow to cause, (ii) an access to a victim secret, (iii) that is transmitted via a microarchitural covert channel, (iv) to a receiver running in the attacker's protection domain. 
 
 Exactly how each step is conducted varies between attacks.
-For instance, all sorts of different prediction structures within a modern CPU can be leveraged to reroute speculative control flow.
-And the access in (ii) can be performed via a gadget in victim application, or entirely using instructions located within the attacker application.
+For instance, there are many prediction structures within a modern CPU can be leveraged to reroute speculative control flow, and the access in (ii) can be performed via a gadget in victim application or entirely using instructions located within the attacker application.
 
 Transient execution attacks are possible in setting with code running for two mutually distrusting entities on the same CPU.
 This can be a user application attacking the OS, a user application targeting other user applications, a guest OS exploiting the hypervisor, and so forth.
@@ -94,21 +93,18 @@ This can be a user application attacking the OS, a user application targeting ot
 \section{Evolution of Mitigation Cost}
 Mitigations for transient execution attacks can introduce significant performance impacts as surveys by Phoronix have demonstrated~\cite{phoronix:perf-zombieload, phoronix:two-years, phoronix:three-years}.
 %For instance, the patches to mitigate Meltdown cause system calls to be up to 8$\times$ slower, while flushing microarchitural buffers to avoid MDS can add thousands of cycles to every context switch.
-One goal of this thesis is to gain a more detailed understanding compared to prior work, including by measuring how specific mitigations impact performance across vendors and generations of processors.
-We also study internal javascript runtime mitigations (e.g., index masking) to understand whether the performance impact on browsers is different from operating systems.
+One goal of this thesis is to gain a more detailed understanding compared to prior work, including by measuring how specific mitigations impact performance.
 
-We survey across multiple processor generations and across the two main vendors for x86 processors.
-This enables us to understand both which costs are specific only to CPUs from a particular vendor as well as see trends in how costs are changing over time.
+We start with end-to-end benchmarks to identify which mitigations are relevant to performance.
+In selecting workloads, we direct our attention primarily towards security boundaries.
+This is because transient execution attacks in one way or another involve leaking information across a boundary and most of the mitigations to prevent them involve performing extra work each time execution crosses a boundary. 
+Each selected workload stresses a different boundary: we use LEBench to measure the OS boundary, Octane 2 to profile JavaScript sandbox overhead, run a couple virtual machine benchmarks, and verify that there isn't significant overhead for a few CPU intensive workloads running entirely within a single process.
 
-%The first contribution of this thesis is quantify the performance cost of hardware mitigations changes made in response to the attacks across successive generations of processors designed both before and after the publication of these attacks.
-
-First, we run end-to-end benchmarks on each system measuring operating system and web-browser workloads.
-This is enough to derive some high level trends.
-However, by varying which mitigations are enabled, the overheads can also be attributed back to the specific mitigations that cause them.
-Our test systems vary on many dimensions unrelated to transient execution attacks (like core count, clock speed, and cache size) so our direct comparisons primary focus on relative differences between configurations of the same system.
+By varying which mitigations are enabled during each experiment run, we're able to attribute overheads back to the specific mitigations that cause them.
+Our test systems vary on many dimensions unrelated to transient execution attacks (like core count, clock speed, and cache size) so our direct comparisons focus on relative differences between configurations of the same system.
 
 On workloads that stress the Linux kernel interface (which have received the most attention) we find there have been substantial improvements with overhead on LEBench going from over 30\% to less than 3\%, and all measured overhead now attributable to a single attack.
-By contrast, the performance of JavaScript applications running inside Firefox are impacted by an almost entirely different set of mitigations, which on the Octane 2 JavaScript benchmark has caused overhead to remain roughly flat at 20\%. 
+By contrast, the performance of JavaScript applications running inside Firefox are impacted by an almost entirely different set of mitigations, which on the Octane 2 JavaScript benchmark has caused overhead to remain roughly flat at 20\%.
 
 We also conduct a detailed breakdown of individual mitigation code sequences to investigate their precise cycle costs.
 For each mitigation identified by the end-to-end benchmarks, we attempt to measure execution time of the associated instruction or instruction sequence on each of our impacted systems.
@@ -120,7 +116,7 @@ Many processors designed prior to the discovery of transient execution attacks r
 These CPUs will remain in use for years to come, so they cannot simply be ignored.
 %\sys is an operating system architecture designed for such processors.
 %It achieves similar security guarantees to traditional OSes equiped with software mitigations but incurs substantially lower overhead.
-\sys is a novel operating system architecture which is resilient to transient execution attacks, yet avoids much of the overhead caused by software mitigations when running on these older processors. 
+\sys is a novel operating system architecture which is resilient to transient execution attacks, yet avoids much of the overhead caused by software mitigations when running on these older processors.
 
 In \sys, the operating system kernel is divided into multiple domains.
 The K-domain includes all information accessible to the operation system, while each process has its own associated Q-domain consisting only of the userspace memory and kernel space data structures related to that one process.
