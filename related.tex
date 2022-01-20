@@ -3,27 +3,28 @@
 This thesis is motivated by the papers that show how secret kernel data
 can be leaked through micro-architectural state, which started with the discovery of Meltdown~\cite{lipp:meltdown} and the original Spectre~\cite{kocher:spectre} variants.
 These were rapidly followed by the discovery of more attacks targeting transient execution, including MDS~\cite{canella:fallout,schwarz:zombieload,schaik:ridl}, Speculative Store Bypass~\cite{horn:speculative-store-bypass}, and many others~\cite{bhattacharyya:smotherspectre,bulck:foreshadow,chen:sgxspectre,koruyeh:spectrersb,ragab:crosstalk,stecklina:lazyfp,schaik:cacheout,weisse:foreshadow-ng, bulck:lvi}.
-Several survey papers were helpful by categorizing the known attacks~\cite{hill:survey,sok:transient,xiong:survey}.
+Several survey papers categorize the known attacks~\cite{hill:survey,sok:transient,xiong:survey}.
 
-Phoronix has conducted some of the most notable performance studies~\cite{phoronix:perf-zombieload, phoronix:two-years, phoronix:three-years}. A few other groups have conducted studies~\cite{nikolay:meltdown-spectre-performance,prout:measuring-spectre-meltdown} but those predate the most recent attacks.
+\section{Measuring performance}
+
+Simakov~\cite{nikolay:meltdown-spectre-performance} and Prout~\cite{prout:measuring-spectre-meltdown} conducted early performance studies on the impact of transient execution attacks, but the most comprehensive results come from the many articles published by Phoronix~\cite{phoronix:perf-zombieload, phoronix:two-years, phoronix:three-years}.
+This prior work provides top-line numbers on the total overhead, but does not attribute costs to individual mitigations nor measure the impact of JavaScript level mitigations.
+
 The Linux community has paid close attention to the cost of mitigations throughout, including for IBRS~\cite{linus:ibrs-rant},  KPTI~\cite{gregg:kpti-perfromance}, and MDS~\cite{phoronix:perf-zombieload}.
-Their work has played a role in both understanding and driving down the performance overheads.
+Their efforts has played a role in both understanding and driving down the performance overheads.
 
-\section{Mitigation Approaches}
+\section{Mitigation approaches}
 
-Linux makes heavy use of software/microcode mitigations on older processors, but many attacks have now been fixed in production hardware~\cite{intel:affected-processors}.
-Meanwhile known hardware techniques for addressing other attacks require more substantial changes~\cite{barber:specshield, weisse:nda, ainsworth:muontrap,yu:stt,yu:sdo}, generally by somehow delaying the use of speculative data until it is safe.
-While such defenses are
-more comprehensive, they have higher overheads that impact performance whenever
-speculation occurs.
-By contrast, the \contract constrains speculation in a more
-targeted way based on memory mappings. ConTExT also proposes constraining
-speculation based on memory mappings, but introduces a new PTE bit to explicitly
-mark pages that contain secret data~\cite{ConTExT}. \sys instead keeps secrets in
-separate address spaces, and allows speculation after employing its defenses to
-switch to the K domain.  Finally, SpecCFI proposes to enforce control-flow
-integrity during speculative execution~\cite{koruyeh:speccfi}. This idea strengthens
-Spectre defenses, and is complementary to \sys.
+Linux makes heavy use of software and microcode-based mitigations on older processors~\cite{linux:vuln}, and \sys adopts the same techniques and optimized implementations for the K domain.
+These include Linux's \texttt{nospec} macro for bounds clipping, \texttt{FILL\_RETURN\_BUFFER} to fill the return buffer, and retpoline.
+\sys's hotpatching of its kernel text to remove retpolines in the Q
+domain was inspired by Linux's \textsc{alternative}
+macro~\cite{lwn:alternative}.
+
+Many attacks have now been fixed in production hardware~\cite{intel:affected-processors}, but 
+the known hardware techniques for addressing other attacks require more substantial changes~\cite{barber:specshield, weisse:nda, ainsworth:muontrap,yu:stt,yu:sdo}.
+Generally these techniques involve somehow delaying the use of speculative data until it is safe.
+Although such defenses are more comprehensive, they have higher overheads that impact performance whenever speculation occurs.
 
 User-space sandboxing requires its own set of techniques.
 Swivel~\cite{narayan:swivel} is a compiler framework which hardens WASM bytecode against attack, while
@@ -32,16 +33,6 @@ Production JavaScript engines deploy more targeted mitigations like Pointer Pois
 Compiler techniques like Speculative Load Hardening~\cite{carruth:slh} ensure binaries are completely immune to Spectre, albeit at considerable overhead.
 
 \section{\sys}
-
-We rely heavily on the mitigation work in the Linux
-community~\cite{linux:vuln}. \sys adopts Linux's techniques and their
-optimized implementation in the K domain.  \sys uses, for example,
-Linux's \texttt{nospec} macro for bounds clipping,
-\texttt{FILL\_RETURN\_BUFFER} to fill the return buffer, and retpoline.
-\sys's hotpatching of its kernel text to remove retpolines in the Q
-domain was inspired by Linux's \textsc{alternative}
-macro~\cite{lwn:alternative}.
-
 
 The Q page table is inspired by the shadow page table in
 KAISER~\cite{gruss:kaiser} and KPTI~\cite{linux:kpti}. In Linux, when
@@ -52,6 +43,10 @@ enters the kernel, it switches to the kernel page table that maps all
 of physical memory.  \sys, however, executes complete system
 calls while running under the Q page table; this requires a significant
 redesign of the OS kernel, which is a major focus of this work.
+
+\sys and ConTExT both constrain speculation based on memory mappings, but ConTExT uses a new PTE bit to explicitly mark pages that contain secret data~\cite{ConTExT} while \sys instead keeps secrets in separate address spaces.
+SpecCFI proposes to enforce control-flow integrity during speculative execution~\cite{koruyeh:speccfi}.
+This idea strengthens Spectre defenses, and is complementary to \sys.
 
 The use of virtual-memory to partition the kernel address space has a
 long history in operating systems research.  One example is

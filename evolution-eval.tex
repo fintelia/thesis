@@ -1,5 +1,5 @@
 \section{Performance of Individual Mitigations}
-\label{s:eval}
+\label{s:evolution-eval}
 
 This section explores in more detail the individual mitigations that contributed
 to the previously shown end-to-end overheads.
@@ -276,23 +276,23 @@ This mitigation incurs an overhead on Octane 2 on the order of 6\%.
 \subsection{Speculative Store Bypass}
 \label{sec:ssb}
 
+\begin{figure}[h]
+  \includegraphics[width=\columnwidth]{plots/ssbd.pdf}
+  \caption{The slowdown caused by Speculative Store Bypass Disable on three benchmarks from the PARSEC suite.}
+  \label{fig:ssbd}
+\end{figure}
+
 Speculative Store Bypass, originally called Spectre V4, exploits the processor's store-to-load forwarding to enable an attacker to learn the contents of recently written memory locations.
 The only available defense against the attack is to enable a processor mode called Speculative Store Bypass Disable (SSBD) that blocks this forwarding.
-A downside is that this comes at substantial cost, even when normal non-malicious code is being run.
+A downside is that this can come at substantial cost, even when normal non-malicious code is being run.
 
 The compromise reached by the Linux developers was to enable SSBD only for processes which opted into it via its \texttt{prctl} or \texttt{seccomp} interfaces.
 To see the full impact of this mitigation if enabled all the time, we measured the slowdown it causes to the swaptions benchmark from PARSEC.
-Figure~\ref{fig:ssbd} shows that the slowdown ranges from 7\% to 34\%,
+Figure~\ref{fig:ssbd} shows that the slowdown can be as much as 34\%,
 and is trending worse over time.
 It isn't entirely clear why this would be the case, but it may be related to newer processors have a more complete SSBD implementation compared to what was possible via microcode patches.
 These overheads are especially considerable given that the combined
 impact of all default mitigations for this benchmarks is well under one percent (\S\ref{sec:benchmarks:parsec}).
-
-\begin{figure}[h]
-  \includegraphics[width=\columnwidth]{plots/ssbd.pdf}
-  \caption{The slowdown caused by Speculative Store Bypass Disable on the Swaptions benchmark.}
-  \label{fig:ssbd}
-\end{figure}
 
 \subsection{L1 Terminal Fault}
 One other attack worth mentioning is L1 Terminal Fault, which can leak the entire contents of the L1 cache when page tables contain PTEs with certain bit patterns.

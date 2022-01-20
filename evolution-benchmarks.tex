@@ -13,7 +13,7 @@ Based on this, we focus on two particularly relevant protection boundaries: the 
 The boundary between a hypervisor and its guest operating system is also notable, but we did not find significant performance differences between running virtualization workloads with and without mitigations enabled.
 
 In addition, we consider the case of a compute-intensive workload running within a single operating system process.
-That involves no protection boundary crossings, and thus measures only the impact of mitigations the operating system keeps enabled all the time.
+This involves no protection boundary crossings, and thus measures only the impact of mitigations the operating system keeps enabled all the time.
 
 \subsection{Methodology}
 In the following benchmarks we evaluate across seven different CPU microarchitectures from two vendors.
@@ -23,7 +23,7 @@ Table~\ref{fig:cpus} lists out detailed information on each CPU.
 \begin{table*}[t]
     \begin{center}
     \begin{tabular}{ cllcccc }
-      \textbf{Vendor} & \textbf{Model} & \textbf{Microarchitecture} & \textbf{Power (W)} & \textbf{Clock (GHz)} & \textbf{Cores} \\ \hline 
+      \textbf{Vendor} & \textbf{Model} & \textbf{Microarchitecture} & \shortstack{\textbf{Power} \\ \textbf{(W)}} & \shortstack{\textbf{Clock} \\ \textbf{(GHz)}} & \textbf{Cores} \\ \hline 
         \multirow{5}{*}{Intel} & E5-2640v4         & Broadwell (2014)          & 90 & 2.4 & 10 \\
                                & i7-6600U          & Skylake Client (2015)   & 15 & 2.6 & 2 \\
                                & Xeon Silver 4210R & Cascade Lake (2019)       & 100 & 2.4 & 10 \\
@@ -81,7 +81,7 @@ Collectively, all unlisted mitigations caused a fraction of a percent slowdown o
 
 Octane 2 is a benchmark for JavaScript performance, which we run from within Firefox.
 Figure~\ref{fig:octane2} plots the percent decrease in scores caused by enabling each mitigation in turn.
-JavaScript mitigations (Index masking, object mitigations, and ``other JavaScript'') are shown in blue, while operating system controlled mitigations including Speculative Store Bypass Disable (SSBD) and ``other OS'' are shown below them in green.
+JavaScript mitigations (Index masking, object mitigations, and ``other JavaScript'') are shown in blue, while operating system controlled mitigations including Speculative Store Bypass Disable (SSBD) and ``other OS'' are shown above them in green.
 
 All JavaScript mitigations are implemented by the JIT engine inserting extra instructions into the generated instruction stream, and are used to prevent different variations of the Spectre V1 attack.
 For instance, index masking ensures that speculative accesses to an array do not index past the end of an array.
@@ -89,8 +89,7 @@ It does so by placing a conditional move instruction before every array access w
 This check overall takes very little time but it prevents the CPU from starting to pull the array contents into cache until the array length is known.
 Across many millions of array accesses in the Octane 2 benchmark, this ends up causing a non-trivial cost.
 
-Speculative Store Bypass Disable is an OS level mitigation that is disabled by default for most processes, but which Firefox specifically opts into.
-It does so to provide stronger sandboxing of JavaScript execution.
+Speculative Store Bypass Disable is an OS level mitigation that is disabled by default for most processes, but is enabled for Firefox because it uses seccomp.
 Intel has reserved a bit in in the \texttt{ARCH\_CAPABILITIES} model-specific register to indicate that a given processor isn't vulnerable to Speculative Store Bypass and therefore that the associated mitigation is neither needed nor implemented.
 However, we do not know of any CPUs for either vendor that set that bit, not even models that came out years after the attack was discovered.
 

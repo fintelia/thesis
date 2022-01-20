@@ -8,27 +8,34 @@ Despite this highly visible impact on user experience, Phoronix and prior studie
 We go further and attribute overheads to individual mitigations to understand which ones matter to overall performance.
 We also study internal JavaScript runtime mitigations to understand whether the performance impact on browsers is different from operating systems. 
 
-To understand how performance has evolved, we focus our attention on security boundaries because mitigations for transient execution attacks usually involve doing extra work for each boundary crossing, often in the form of flushing of microarchitural state or waiting for in-flight operations to complete.
+In this thesis, the focus is on security boundaries because mitigations for transient execution attacks usually involve doing extra work for each boundary crossing, often in the form of flushing of microarchitural state or waiting for in-flight operations to complete.
 Each of our workloads are chosen to stress a different security boundary.
-We measure the OS boundary (\S\ref{sec:benchmarks:lebench}), the boundaries between JavaScript sandboxes (\S\ref{sec:benchmarks:octane-2}), between a guest OS and a hypervisor (\S\ref{sec:benchmarks:vm}), and confirm that mitigation overheads are low in the absence of security boundaries (\S\ref{sec:benchmarks:parsec}).
+\S\ref{sec:benchmarks:lebench} measures the OS boundary, \S\ref{sec:benchmarks:octane-2} the boundaries between JavaScript sandboxes, \S\ref{sec:benchmarks:vm} between a guest OS and a hypervisor, and \S\ref{sec:benchmarks:parsec} confirms that mitigation overheads are low in the absence of security boundaries.
 Another possible boundary would be between WASM sandboxes, but we found that other than Swivel~\cite{narayan:swivel} which is already well studied, production WASM engines seem to either rely on site isolation~\cite{reis:site-isolation} or neglect to mitigate transient execution attacks at all.
 
-Our experiments look at a range of processors including both some that predate the discovery of Spectre and Meltdown (but which are still in active use), newer ones which incorporate some mitigations, and even more recent models with still more mitigations.
+Our experiments look at a range of processors including both some that predate the discovery of Spectre and Meltdown but which are still in active use, newer ones which incorporate some mitigations, and even more recent models with still more mitigations.
 We evaluate five processors from Intel and three AMD processors so we can compare across vendors as well.
 For each processor and workload, we characterize the total overhead caused by mitigations and further attribute how much of the overall slowdown is caused by each individual mitigation.
 This informs our microbenchmarking of individual mitigations.
 For mitigations that incur meaningful overhead, we investigate in more detail to understand their performance characteristics.
 
-On workloads like the LEBench~\cite{ren:lebench} benchmark suite that stress the user-kernel interface we find overheads have declined from over 30\% on our oldest processor to under 3\% on the most recent CPUs.
-By contrast, when examining the impact on JavaScript engine performance as measured by the Octane 2 benchmark suite~\cite{google:octane2}, we observed no improvement across successive generations at all.
-For AMD processors the overhead has actually gotten worse.
-On a compute intensive benchmark, there was well under one percent overhead on each of the processors we evaluated.
+We seek to answer the following questions: 
+Which attacks are primarily responsible for the performance impact, and does that vary across processors or workloads? (\S\ref{s:benchmarks})
+What are the performance characteristics of mitigations for those attacks? (\S\ref{s:evolution-eval})
+How can we explain explain the continued overhead for attacks with hardware mitigations? (\S\ref{s:analysis})
+Are newly discovered attacks or future hardware designs likely to substantially change the overhead of mitigations? (\S\ref{s:evolution-discussion})
 
-Our microbenchmarks explain these trends.
-The most expensive mitigations on the first workload stressing the operating system interface have been fixed in hardware on newer CPUs, thereby eliminating the overhead.
-By contrast, JavaScript sandboxing stresses a different set of mitigations which have substantial cost but none of which have been fixed through hardware changes.
 
-This chapter seeks to draw attention to the performance critical areas for improving transient execution mitigations, driven by (1) an end-to-end survey of how mitigation costs have evolved over processor generations, and (2) detailed microbenchmarking of individual mitigations.
+% On workloads like the LEBench benchmark suite~\cite{ren:lebench} that stress the user-kernel interface we find overheads have declined from over 30\% on our oldest processor to under 3\% on the most recent CPUs.
+% By contrast, when examining the impact on JavaScript engine performance as measured by Octane 2~\cite{google:octane2}, we observed no improvement across successive generations at all.
+% For AMD processors the overhead has actually gotten worse.
+% On a compute intensive benchmark, there was well under one percent overhead on each of the processors we evaluated.
+
+% Our microbenchmarks explain these trends.
+% The most expensive mitigations on the first workload stressing the operating system interface have been fixed in hardware on newer CPUs, thereby eliminating the overhead.
+% By contrast, JavaScript sandboxing stresses a different set of mitigations which have substantial cost but none of which have been fixed through hardware changes.
+
+In doing so, this chapter seeks to draw attention to the performance critical areas for improving transient execution mitigations, driven by (1) an end-to-end survey of how mitigation costs have evolved over processor generations, and (2) detailed microbenchmarking of individual mitigations.
 To analyze hardware mitigations for Spectre V2, we also contribute a new technique to measure speculation using ideas from Bölük~\cite{speculating-x86}.
 %Our benchmarks and analysis code will be made available on GitHub.
 
@@ -36,7 +43,7 @@ There are some limitations.
 %Our evaluation does not consider a virtual machine workload, though in such workloads guest-hypervisor boundary crossings tend to be much less frequent than user-kernel boundary crossings so mitigation overheads should be correspondingly lower.
 We are limited in the number of processor generations to evaluate and at the same time the processors we do consider are diverse in terms of clock speed, core count, power draw, and many other dimensions.
 Additionally the conclusions we can draw are constrained by the lack of public details on how hardware mitigations are implemented.  
-Finally, new attacks may require new mitigations with their own overheads.
+Finally, it is inherently uncertain what impact yet to be discovered attacks will have.
 
 % The rest of the paper is organized as follows.  \autoref{s:related}
 % relates this paper to previous work.  \autoref{s:background} describes

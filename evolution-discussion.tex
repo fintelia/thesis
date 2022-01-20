@@ -1,10 +1,9 @@
 \section{Discussion}
-\label{s:discussion}
+\label{s:evolution-discussion}
 
-We present some thoughts for computer architects and
-operating systems developers that can address the lingering slowdowns from transient execution attacks.
+%We present some thoughts for computer architects and operating systems developers that can address the lingering slowdowns from transient execution attacks.
 
-\subsection{Hardware mitigations for Spectre V1}
+\subsection{Spectre V1}
 
 One takeaway from the previous sections is the continued impact of Spectre V1.
 There are no hardware mitigations available for the attack in high performance commercial CPUs.
@@ -25,23 +24,47 @@ Speculative Store Bypass Disable was initially implemented in microcode, and whi
 This attack in particular also emphasizes the need to look at the performance impacts of transient execution attacks across representative workloads.
 Despite being disabled by default, Speculative Store Bypass Disable incurs a substantial overhead on JavaScript execution in web browsers---one of the most common workloads run by end-users.
 
-Intel's inclusion of a hardware capability to detect whether a
+This may be changing however.
+Linux 5.16 released in January 2022 has a different default configuration for Speculative Store Bypass.
+Going forward, processes that use seccomp but do not specifically request SSBD will not have the mitigation enabled.
+This is particularly notable because Firefox currently falls in that category.
+It remains to be seen whether Mozilla will issue a patch to restore the old mitigation behavior, but if not, this could be a signal that SSBD was never actually required in the first place.
+
+Additionally, Intel's inclusion of a hardware capability to detect whether a
 processor is vulnerable to Speculative Store Bypass (without a way to toggle it) strongly
 suggests that they believe future hardware will be able to prevent
 the attack with negligible overhead.
 
-\subsection{Hypertheading safety}
+\subsection{Future}
 
-The discovery of more and more transient execution attacks has eroded trust that CPUs are capable of fully preventing information leaks between concurrently running tasks scheduled on hyperthread pairs.
-This is particularly worrisome given that both many of the existing transient execution attacks work in this setting, and that there are a substantial number of other microarchitectural components that are shared between hyperthreads, which could also present side channels.
 
-Linux by default considers this attack vector not worth worrying about, but a heavy-handed approach that's been adopted by certain cloud providers has been to entirely disable hyperthreading when running client virtual machines.
-This approach comes at a high cost because the CPU is no longer able to benefit
-from the increased utilization that hyperthreading allows~\cite{intelht}.
 
-There is however another option that operating system developers could pursue.
-Since it is safe to simultaneously run two mutually trusting processes
-on hyperthread pairs, a more sophisticated scheduling policy could
-ensure that only processes that are safe to collocate
-are assigned to adjacent logical processors.
-One complexity with this strategy is protecting the kernel from snooping by a process running on one hyperthread pair while the other hyperthread is executing a system call.
+% \subsection{Hypertheading safety}
+
+% The discovery of more and more transient execution attacks has eroded trust that CPUs are capable of fully preventing information leaks between concurrently running tasks scheduled on hyperthread pairs.
+% This is particularly worrisome given that both many of the existing transient execution attacks work in this setting, and that there are a substantial number of other microarchitectural components that are shared between hyperthreads, which could also present side channels.
+
+% Linux by default considers this attack vector not worth worrying about, but a heavy-handed approach that's been adopted by certain cloud providers has been to entirely disable hyperthreading when running client virtual machines.
+% This approach comes at a high cost because the CPU is no longer able to benefit
+% from the increased utilization that hyperthreading allows~\cite{intelht}.
+
+% There is however another option that operating system developers could pursue.
+% Since it is safe to simultaneously run two mutually trusting processes
+% on hyperthread pairs, a more sophisticated scheduling policy could
+% ensure that only processes that are safe to collocate
+% are assigned to adjacent logical processors.
+% One complexity with this strategy is protecting the kernel from snooping by a process running on one hyperthread pair while the other hyperthread is executing a system call.
+
+\section{Conclusions}
+\subsection{Which attacks have the greatest performance impact?}
+
+We found that the primary impact on current processors comes from mitigations for Spectre V1 and V2, and Speculative Store Bypass.
+These are some of the earliest attacks discovered: the first two are described in the first transient execution attack paper, and the third was discovered only a matter of months later.
+On operating system intensive workloads, older Intel processors also incur significant costs from Meltdown and MDS, but these have been resolved on the newest models.
+
+\subsection{What are the performance characteristics of mitigations?}
+
+Broadly 
+
+\subsection{How can we explain explain the continued overhead for attacks with hardware mitigations?}
+\subsection{Are overheads likely to substantially change in the future?}
