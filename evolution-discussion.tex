@@ -35,9 +35,6 @@ processor is vulnerable to Speculative Store Bypass (without a way to toggle it)
 suggests that they believe future hardware will be able to prevent
 the attack with negligible overhead.
 
-\subsection{Future}
-
-
 
 % \subsection{Hypertheading safety}
 
@@ -55,16 +52,23 @@ the attack with negligible overhead.
 % are assigned to adjacent logical processors.
 % One complexity with this strategy is protecting the kernel from snooping by a process running on one hyperthread pair while the other hyperthread is executing a system call.
 
-\section{Conclusions}
-\subsection{Which attacks have the greatest performance impact?}
+\subsection{Questions}
+
+Our goal was to answer a number of questions, which we now revisit.
+
+\subsubsection{Which attacks have the greatest performance impact?}
 
 We found that the primary impact on current processors comes from mitigations for Spectre V1 and V2, and Speculative Store Bypass.
 These are some of the earliest attacks discovered: the first two are described in the first transient execution attack paper, and the third was discovered only a matter of months later.
 On operating system intensive workloads, older Intel processors also incur significant costs from Meltdown and MDS, but these have been resolved on the newest models.
 
-\subsection{What are the performance characteristics of mitigations?}
+\subsubsection{What drives the cost of mitigations for those attacks?}
 
-Broadly 
+For the most part, mitigations themselves have not been getting substantially faster.
+The performance improvement for operating system workloads can be explained by no longer needing many of the most expensive mitigations.
 
-\subsection{How can we explain explain the continued overhead for attacks with hardware mitigations?}
-\subsection{Are overheads likely to substantially change in the future?}
+\subsubsection{What predictions can we make about mitigation overheads going forward?}
+
+We cannot know for sure, but there is reason to be optimistic.
+None of the attacks discovered in the last several years show up as causing much performance impact and there is potential that new CPUs may be able to mitigate Spectre V1 or Speculative Store Bypass with lower overhead.
+If the recent change in Linux to use SSBD in fewer places is adopted broadly, then a hardware mitigation for the latter attack may not even be required.
