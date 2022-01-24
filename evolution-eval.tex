@@ -10,7 +10,7 @@ To achieve precise timings, we rely on the timestamp counter functionality avail
 
 \subsection{Meltdown}
 
-On LEBench, Meltdown accounts for one of the most substantial performance impacts, singlehandedly causing an around 10\% overhead on its own.
+On LEBench, the Meltdown mitigation accounts for one of the most substantial performance impacts, singlehandedly causing an around 10\% overhead on its own.
 On processors vulnerable to Meltdown, production operating systems use page table isolation (PTI) to mitigate it.
 This approach adds significant overhead to every user-kernel boundary crossing, because it requires switching the page tables every time via a \texttt{mov} to the \texttt{\%cr3} register.
 Among the systems we evaulated, only Broadwell and Skylake are vulnerable to Meltdown.
@@ -36,7 +36,7 @@ For syscalls, the Ice Lake Client CPU takes fewer cycles (which will prove a pat
   \label{table:meltdown}
 \end{table}
 
-One other impact of page table isolation is that on very old processors it can cause increased TLB pressure due to much more frequent TLB flushes.
+One other impact of page table isolation is that on old processors it can cause increased TLB pressure due to much more frequent TLB flushes.
 Both Broadwell and Skylake Client, however, support PCIDs which tag page table entries with a process identifier.
 This means that on those processors the TLB has to be flushed much less often, and makes TLB impacts marginal compared to the direct cost switching the root page table pointer.
 
@@ -49,7 +49,7 @@ Without the patch the \texttt{verw} only has its old behavior related to segment
 Table~\ref{table:verw} shows that the cost of performing this flush is approximately 500 cycles.
 This cost is substantial because microarchitectural buffers must be flushed not
 just on context switches between processes but also on every kernel-to-user privilege transition.
-Recent Intel processors and well as all AMD processors are not vulnerable to MDS.
+Recent Intel processors and all processors from AMD are not vulnerable to MDS.
 On these processors the \texttt{verw} has only its legacy segmentation-related behavior and takes only tens of cycles.
 
 \begin{table}[h]
@@ -75,16 +75,16 @@ On these processors the \texttt{verw} has only its legacy segmentation-related b
 \subsection{Spectre V2}
 
 Spectre V2 involves poisoning the branch target buffer so that an indirect branch in victim code jumps to a Spectre gadget.
-Mitigating Spectre V2 is a small but largely consistent drag on LEBench performance across all our processors.
+As we saw, mitigating Spectre V2 is a small but largely consistent drag on LEBench performance across all the processors.
 
-\subsubsection{Indirect Branch Restricted Speculation}
+\paragraph{Indirect Branch Restricted Speculation}
 
 Indirect Branch Restricted Speculation (IBRS) was the first mitigated proposed for Spectre V2 and is enabled by setting a MSR bit which must be repeated on every entry into the kernel.
 Newer Intel processors---Cascade Lake and onward---support extended IBRS (eIBRS), which allows the operating system to enable IBRS once at boot time, and have it remain in effect without additional system register writes.
 
 The cycle cost of doing this MSR write on every system call was viewed as unacceptably high, so production operating systems investigated alternative approaches, ultimately settling on retpolines for any processor not supporting eIBRS.
 
-\subsubsection{Retpoline}
+\paragraph{Retpoline}
 
 Retpolines are the primary software mitigation for Spectre V2 today.
 They involve replacing every indirect branch in the kernel with an alternate instruction sequence.
@@ -146,7 +146,7 @@ slower than a generic retpoline.
 \label{table:retpoline}
 \end{table}
 
-\subsubsection{Indirect Branch Prediction Barrier (IBPB)}
+\paragraph{Indirect Branch Prediction Barrier (IBPB)}
 
 In addition to preventing indirect branches in the kernel from being
 hijacked, it is also important that one user process cannot launch a Spectre V2 attack against another process.
@@ -157,10 +157,10 @@ Oddly, however, we noticed that the performance counters report that indirect br
 We speculate that this behavior is caused by the IBPB setting all entries in the BTB to point to a specific harmless gadget rather than simply clearing them.
 
 Table~\ref{table:ibpb} shows that the cost of an IBPB has generally
-declined over time from many thousands of cycles on our Broadwell
+declined over time from many thousands of cycles on the Broadwell
 server to hundreds of cycles on Cascade Lake and Ice Lake Server.
 This improvement is likely related to the fact that older processors implemented IBPB via a microcode patch, whereas newer ones may have some amount of support in hardware.
-Our Ice Lake Client processor somewhat bucks the trend of improving performance when compared to the earlier Cascade Lake, but still requires many fewer cycles than Broadwell or Skylake.
+The Ice Lake Client processor somewhat bucks the trend of improving performance when compared to the earlier Cascade Lake, but still requires many fewer cycles than Broadwell or Skylake.
 AMD processors we tested show a similar improvement across generations.
 
 \begin{table}[h]
@@ -182,7 +182,7 @@ AMD processors we tested show a similar improvement across generations.
     \label{table:ibpb}
 \end{table}
 
-\subsubsection{Return Stack Buffer Filling}
+\paragraph{Return Stack Buffer Filling}
 
 When a user process employs generic retpolines to protect itself from Spectre V2, it is counting on the return stack buffer not being tampered with during the code sequence.
 Unfortunately, if the operating system triggers a context switch at an inopportune time then this condition might be violated.
@@ -197,7 +197,7 @@ This is required so that any interrupted retpoline sequence will avoid jumping t
 Table~\ref{table:rsb-fill} shows the cycles required to fill the return stack buffer on each processor.
 There is improvement across generations of Intel processors but less of a clear trend across the AMD CPUs.
 These changes are likely realized more by improving performance overall
-than trying to optimize for return stack buffer filling specifically, but regardless, the cost of these mitigations is relatively minor compared to the total overhead of doing a context switch between processes.
+than trying to optimize for return stack buffer filling specifically, but regardless, the cost of these mitigations is relatively minor compared to the total overhead of doing a context switch between processes (which takes at least several thousand cycles)
 
 \begin{table}[h]
   \begin{center}
@@ -218,7 +218,7 @@ than trying to optimize for return stack buffer filling specifically, but regard
 \end{table}
 
 Return stack buffer filling also provides protection against variations of
-SpectreRSB, which exploits the return stack buffer itself.
+SpectreRSB~\cite{koruyeh:spectrersb}, which exploits the return stack buffer itself.
 Thus while the overall toggle to enable the functionality is controlled by Linux's \texttt{nospectre\_v2} option, some amount of the overhead attributed to Spectre V2 should probably be accounted to mitigating SpectreRSB instead.
 
 \subsection{Spectre V1}
@@ -226,14 +226,14 @@ Thus while the overall toggle to enable the functionality is controlled by Linux
 On the Octane 2 benchmarks, the various Spectre V1 mitigations collectively accounted for a large fraction of the total overhead.
 We discuss each of them in more detail.
 
-\subsubsection{lfence}
+\paragraph{lfence}
 
 One mitigation for Spectre V1 is to execute an \texttt{lfence} instruction immediately following each bounds check and \texttt{swapgs} instruction.
 This instruction waits until all prior loads have resolved, thereby preventing any subsequent Spectre gadget from executing.
 The cost of an \texttt{lfence} varies significantly based on operations in flight.
-A simple microbenchmark of running the instruction in a loop shows improvement between successive generations of Intel processors, but AMD's Zen 3 is actually slower than its predecessor.
+Table~\ref{table:lfence} shows the results of a simple microbenchmark of running an \texttt{lfence} instruction in a loop.
+An important caveat is that the performance will depend a lot on what other instructions have been executed prior so this is not a fully representative experiment.
 
-Table~\ref{table:lfence} shows the cost of executing a single \texttt{lfence} instruction, with the important caveat that the performance of the instruction depends a lot on what other instructions have been executed prior.
 We see that all times are roughly of the same scale, with newer processors showing better performance.
 The \texttt{lfence} does more work on AMD than on Intel (as evidenced by the AMD retpoline sequence described earlier) so the numbers are not directly comparable across vendors.
 
@@ -256,7 +256,7 @@ The \texttt{lfence} does more work on AMD than on Intel (as evidenced by the AMD
   \label{table:lfence}
 \end{table}
 
-\subsubsection{Index Masking}
+\paragraph{Index Masking}
 
 Instead of preventing speculation past bounds checks, an alternative mitigation is to force the array index to zero for any out of bounds access.
 SpiderMonkey (the JavaScript engine used by Firefox) uses this
@@ -266,7 +266,7 @@ Unlike in many compiled languages, JavaScript always knows the lengths of arrays
 On the committed execution path the conditional move will always be a no-op (because as a safe language JavaScript always does bounds checks), but in the speculative case it blocks execution until the array length has resolved.
 Our measurements of the Octane 2 benchmark suite indicate this approach incurs an approximately 4\% performance overhead.
 
-\subsubsection{Object Mitigations}
+\paragraph{Object Mitigations}
 
 Since JavaScript is dynamically typed, the compiler must insert many runtime checks on the types of variables.
 This presents another possible avenue for Spectre V1 attacks, because mis-speculating an object's type can cause its fields to be misinterpreted, potentially resulting in out of bounds memory reads.
@@ -296,8 +296,9 @@ impact of all default mitigations for this benchmarks is well under one percent 
 
 \subsection{L1 Terminal Fault}
 One other attack worth mentioning is L1 Terminal Fault, which can leak the entire contents of the L1 cache when page tables contain PTEs with certain bit patterns.
+Linux avoids ever creating such PTEs, which can be done with essentially no overhead.
+This is consistent with it not showing up in our end-to-end performance study earlier.
 
-Linux avoids ever creating such PTEs (which can be done with essentially no overhead).
 However, the problem is more severe when virtual machines are involved because an untrusted guest operating system could insert such specially crafted PTEs into its own page table.
 Doing so would enable it to learn L1 cache contents lingering from memory accesses done by the host, and so the necessary mitigation on vulnerable processors is for the host to flush the L1 cache prior to entering a guest virtual machine.
 

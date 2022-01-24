@@ -64,7 +64,7 @@ method to determine what instructions are being speculatively executed
 by the CPU.  Bölük~\cite{speculating-x86} describes a technique using
 performance counters to determine whether a processor starts
 speculatively executing at a given address, which we adopt to probe
-the behavior of the Branch Target Buffer.
+the behavior of the Branch Target Buffer, as explained next.
 
 % \fk{is the point of this paragraph to say that every processor has
 %   performance counters for division operations, while not all
@@ -144,7 +144,7 @@ This is not reflective of a real world attack scenario, but it revealed that the
 One final note is that we did not manage to poison the branch target buffer at all on our Zen 3 processor.
 We suspect this isn't because it is immune to the attack, but rather due to some change to the Branch History Buffer (used to compute the index for the branch target buffer) or another implementation detail that experiments did not account for.
 
-\subsubsection{Indirect Branch Restricted Speculation}
+\paragraph{Indirect Branch Restricted Speculation}
 
 Recall that the original version of Indirect Branch Restricted Speculation (IBRS) was the first mitigation proposed for Spectre V2 but is not used by default on any production operating system because it requires an expensive write to a model-specific register on every entry into the kernel.
 
@@ -157,7 +157,7 @@ Table~\ref{table:btb-ibrs}) revealed that IBRS was disabling all
 indirect branch prediction both in user space and kernel space.
 Not having this prediction even for user processes incurs a high performance cost.
 
-\subsubsection{Enhanced IBRS (eIBRS)}
+\paragraph{Enhanced IBRS (eIBRS)}
 
 Enhanced IBRS provides the same guarantees as the original IBRS but doesn't require an MSR write on every kernel entry.
 Given the lackluster performance of IBRS compared to retpolines, that may not seem promising, but the presence of this feature signals more serious mitigations built into the hardware.

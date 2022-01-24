@@ -39,18 +39,21 @@ Table~\ref{fig:cpus} lists out detailed information on each CPU.
   \end{table*}
 
 The processors we evaluate span from before the discovery of Spectre and Meltdown (Broadwell, Skylake Client, and Zen) to the most recently available Intel mobile and server microarchictures (Ice Lake Client and Server respectively) and AMD microarchicture (Zen~3).
-Despite sharing the same name, Ice Lake Client and Ice Lake Server differ meaningfully from one another.
+Despite sharing the same name, Ice Lake Client and Ice Lake Server are different microarchitectures and were designed separately.
 All machines have an up-to-date kernel: either version 5.11, the 5.14 release, or the 5.4 long-term maintenance release.
 
 This diversity of systems gives a broad view of the ecosystem, but at the same time our work is complicated by all the different dimensions they vary on.
-Our processors range from 1.0 GHz to 3.7 Ghz and from 2 cores to 32 cores.
+The processors range from 1.0 GHz to 3.7 Ghz and from 2 cores to 32 cores.
 Newer ones incorporate not just design improvements, but also tend to have smaller transistors, faster RAM, and so forth.
 For these reasons our experiments focus primarily on relative differences between configurations of the same machine.
 
 To measure the impact of individual mitigations, we run  Linux with the default set of mitigations enabled, and then use kernel boot parameters to successively disable them to determine the overhead that each one causes.
 Some mitigations are applied separately by Firefox, which we control via its \texttt{about:config} interface.
-Since variability within runs frequently exceed the total overheads we are measuring, we average the times from several hundred runs of each configuration.
 
+When we started running experiments, variability observed on a single configuration was frequently on the same scale as the overheads we were trying to measure.
+Additional techniques were required to account for this.
+We adopted a methodology of running each benchmark configuration many times while tracking the average and 95\%-confidence interval, stopping once the error was small enough.
+Benchmark scores for individual runs of the same configuration would vary by a couple percent each time, but the many iterations give us an accurate estimate of the true average.
 
 \subsection{LEBench}
 \label{sec:benchmarks:lebench}
@@ -65,10 +68,10 @@ Since variability within runs frequently exceed the total overheads we are measu
 LEBench~\cite{ren:lebench} is a collection of microbenchmarks for measuring specific operating system operations.\footnote{To align with experiments from elsewhere in this thesis, we use the version of the LEBench benchmarks distributed with \sys~\cite{behrens:ward} .}
 In this experiment, we track the geometric mean of benchmarks from the suite.
 As seen in Figure~\ref{fig:lebench} the overhead has decreased sharply for newer processors:
-CPUs which incorporate hardware mitigations (for Intel) or from a vendor whose CPUs were not vulnerable to all attacks in the first place (AMD) exhibit substantially smaller overheads.
+CPUs that incorporate hardware mitigations (for Intel) or from a vendor whose CPUs were not vulnerable to all attacks in the first place (AMD) exhibit substantially smaller overheads.
 
 Also notable is that only a small number of mitigations are responsible for nearly all of the overheads.
-Collectively, all unlisted mitigations caused a fraction of a percent slowdown on Zen 2, but on our other processors had no statistically significant impact at all.
+Collectively, all unlisted mitigations caused a fraction of a percent slowdown on Zen 2, but on the other processors had no statistically significant impact at all.
 
 \subsection{Octane 2}
 \label{sec:benchmarks:octane-2}
@@ -120,7 +123,7 @@ This matches prior reports that compute intensive workloads without interactions
 The one exception is that when we force-enabled mitigations for Speculative Store Bypass, we observed significant overheads which \S\ref{sec:ssb} explores in more detail.
 
 \subsection{Summary}
-Each of these benchmarks plots a very different trajectory of mitigation costs.
+Each of these benchmarks plots a different trajectory of mitigation costs.
 Workloads that stress the operating system interface have received the most attention, and overheads on LEBench have gone from over 30\% on older Intel CPUs to under 3\% on the latest models from both vendors.
 By contrast, JavaScript overhead has been consistently in the range of 15\% to 25\%, with the newest AMD processor we tested paying an even larger cost.
 Our compute-intensive benchmark has negligible overhead regardless of the processor.
@@ -128,7 +131,7 @@ Our compute-intensive benchmark has negligible overhead regardless of the proces
 Preventing Spectre V1 has been a significant goal for computer architecture research, but interestingly software mitigations for it had no measurable impact on LEBench performance.
 By contrast, they account for nearly half the overhead on the browser workload.
 
-It is also worth pointing out that all three attacks with significant overhead on new processor are actually quite old.
-Spectre V1 and Spectre V2 were the first transient execution attacks discovered (along with Meltdown which was discovered at the same time) while Speculative Store Bypass followed only a matter of months later.
+It is also worth pointing out that all three attacks with significant overhead on new processor are actually quite ``old''.
+Spectre V1 and Spectre V2 were the first transient execution attacks discovered (along with Meltdown, which was discovered at the same time), while Speculative Store Bypass followed only a matter of months later.
 Over the subsequent three years of transient execution attack discoveries, they've all either been quickly resolved in hardware or had a negligible cost to mitigate in software.
-This paints an optimistic outlook for the future.
+This paints an optimistic outlook for the future (assuming this remains true).

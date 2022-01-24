@@ -42,8 +42,8 @@ This outlook differs from prior surveys like Canella, et al.~\cite{sok:transient
 
 Meltdown-type attacks exploit the processor's fault-handling logic to speculatively access privileged state.
 
-\subsubsection{Meltdown}
-The original Meltdown attack is caused by speculatively translating kernel addresses for supervisor pages even while running in user mode, which enables a user process to read any kernel memory mapped into its address space.
+\paragraph{Meltdown~\cite{lipp:meltdown}}
+The original Meltdown attack is caused by speculatively translating kernel addresses for supervisor pages even while running in user mode, which enables a user process to read any kernel memory mapped into its address space before the processor aborts speculation and raises a fault.
 At the time of discovery, existing processors from Intel as well as some from IBM and ARM were vulnerable~\cite{intel:meltdown,ibm:speculation, arm:speculation}.
 
 Software mitigations for Meltdown are expensive, requiring a page table
@@ -51,7 +51,7 @@ switch on every user-kernel boundary crossing.  Processors made by other
 vendors---and those designed after the attack was discovered---do not engage in
 this kind of speculation, so they can avoid these software overheads.
 
-\subsubsection{L1 Terminal Fault}
+\paragraph{L1 Terminal Fault~\cite{weisse:foreshadow-ng}}
 %L1 Terminal fault is a pretty clear case of a hardware bug.
 On certain Intel processors, the present bit in PTEs is ignored during speculative execution, which can
 allow an attacker to leak L1 cache contents.
@@ -62,7 +62,7 @@ the nested page table.
 Taken together, if the hypervisor doesn't flush the L1 cache before every VM entry, it risks leaking recently accessed data from other privilege domains.
 Both the flush operation itself and subsequent cache misses make this mitigation more costly.
 
-\subsubsection{LazyFP}
+\paragraph{LazyFP~\cite{stecklina:lazyfp}}
 Traditionally, when exposing floating point hardware to user processes, operating systems would optimize context switch time by lazily saving and restoring FPU state.
 In particular, the assumption was that many processes would not access floating point state, so on a context switch the FPU would be marked disabled, but retain the floating point registers from the previously running process.
 Any attempt to execute floating point instructions would trigger a trap, during which the OS could save the old process's floating point registers and load in the registers for the current process.
@@ -70,12 +70,12 @@ Any attempt to execute floating point instructions would trigger a trap, during 
 During transient execution, some processors will ignore the enable bit on the FPU and allow computation on the floating point registers even if they actually belong to a different process, potentially leaking sensitive register contents to an attacker.
 
 Linux's mitigates LazyFP by always saving and restoring FPU state during context
-switches.  Amusingly, this mitigation actually speeds up certain workloads,
-because modern processors provide highly efficient instructions for saving and
+switches.  Amusingly, this mitigation speeds up certain workloads,
+because modern processors provide special instructions for saving and
 restoring this state (e.g., \texttt{xsaveopt})~\cite{lutomirski:lazyfp-perf}. As
 a result, the trap handling overhead is often higher than the cost of unconditionally saving and restoring the registers.
 
-% \subsubsection{System Register Bypass}
+% \paragraph{System Register Bypass}
 % Certain processors will also speculatively let user space code execute reads of system registers.
 % Because there is no kernel intervention at all, only a microcode patch can prevent this attack.
 
@@ -86,28 +86,33 @@ They typically involve a specific gadget involving two memory loads; see Figure~
 The first load brings sensitive data into a register, and the second uses that value to index into a large array.
 An attacker is later able to determine the result of the first load by seeing which array entry was pulled into the cache.
 
+Notice that the code in Figure~\ref{fig:spectre-gadget} matches the body of the \texttt{if} statement from Figure~\ref{fig:spectre-code} (which shows a Spectre V1 attack).
+Other Spectre attacks have different supporting code but this same core gadget.
+
 \begin{figure}[h]
 \begin{lstlisting}
 int x = array[index];
 int y = array2[x * 256];
 \end{lstlisting}
-\caption{A Spectre gadget. If this code sequence is executed (even speculatively) it will alter the contents of the CPU cache, making it possible for an attacker to learn the value of \texttt{x}, or if \texttt{index} is attacker controlled, all of virtual memory. }
+\caption{A Spectre gadget. If this code sequence is executed (even speculatively) it will alter the contents of the CPU cache, making it possible for an attacker to learn the value of \texttt{x}, or if \texttt{index} is attacker controlled, all of virtual memory.}
 \label{fig:spectre-gadget}
 \end{figure}
 
-\subsubsection{Spectre V1}
+\paragraph{Spectre V1~\cite{kocher:spectre}}
 The bounds-check-bypass variant of Spectre works by tricking the processor into doing an out-of-bounds array access by speculatively executing the body of an if statement.
 Software mitigations usually entail manually annotating kernel branches with \texttt{lfence} instructions or array accesses with special macros that never read out of bounds.
 
-\subsubsection{Spectre V2}
+\paragraph{Spectre V2~\cite{kocher:spectre}}
 
-Modern CPUs use a Branch Target Buffer to predict the targets of indirect branches so they can speculatively start executing them before resolving the true target of a branch.
-Poisoning the branch target buffer enables attacker code to make the CPU mispredict the targets of indirect branches and route transient execution to specially chosen spectre gadgets.
+Modern CPUs use a Branch Target Buffer (BTB) to predict the targets of indirect branches.
+At a high level, a BTB is table mapping from instruction address to the last jump target for the branch instruction located at that address.
+Processors use BTBs so they can speculatively start executing code following an indirect branch before resolving the true target of that branch.
+Poisoning the BTB enables attacker code to make the CPU mispredict the targets of indirect branches and route transient execution to specially chosen spectre gadgets.
 
 There is no single mitigation for Spectre V2.
-It is commonly mitigated by replacing every indirect branch with a retpoline sequence \cite{intel:retpoline} that halts further speculative execution plus additional kernel logic to protect user processes from one another.
+It is commonly mitigated by replacing every indirect branch with a retpoline sequence \cite{intel:retpoline} that halts further speculative execution, plus additional kernel logic to flush the BTB on context switches to protect user processes from one another.
 
-\subsubsection{Speculative Store Bypass}
+\paragraph{Speculative Store Bypass~\cite{horn:speculative-store-bypass}}
 This attack---also known as Spectre V4---exploits store-to-load forwarding in modern processors to learn the contents of recently written memory locations.
 The only available mitigation is a processor mode called Speculative Store Bypass Disable (SSBD), but enabling it has severe negative performance impacts.
 Given the difficulty of exploiting Speculative Store Bypass and the considerable cost of mitigating it, by default SSBD is only used by Linux for processes that specifically opt in to it via \texttt{prctl} or \texttt{seccomp}.

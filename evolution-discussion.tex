@@ -52,22 +52,22 @@ the attack with negligible overhead.
 % are assigned to adjacent logical processors.
 % One complexity with this strategy is protecting the kernel from snooping by a process running on one hyperthread pair while the other hyperthread is executing a system call.
 
-\subsection{Questions}
+\section{Summary}
 
 Our goal was to answer a number of questions, which we now revisit.
 
-\subsubsection{Which attacks have the greatest performance impact?}
+\paragraph{Which attacks have the greatest performance impact?}
 
 We found that the primary impact on current processors comes from mitigations for Spectre V1 and V2, and Speculative Store Bypass.
 These are some of the earliest attacks discovered: the first two are described in the first transient execution attack paper, and the third was discovered only a matter of months later.
 On operating system intensive workloads, older Intel processors also incur significant costs from Meltdown and MDS, but these have been resolved on the newest models.
 
-\subsubsection{What drives the cost of mitigations for those attacks?}
+\paragraph{What drives the cost of mitigations for those attacks?}
 
 For the most part, mitigations themselves have not been getting substantially faster.
 The performance improvement for operating system workloads can be explained by no longer needing many of the most expensive mitigations.
 
-\subsubsection{What predictions can we make about mitigation overheads going forward?}
+\paragraph{What predictions can we make about mitigation overheads going forward?}
 
 We cannot know for sure, but there is reason to be optimistic.
 None of the attacks discovered in the last several years show up as causing much performance impact and there is potential that new CPUs may be able to mitigate Spectre V1 or Speculative Store Bypass with lower overhead.

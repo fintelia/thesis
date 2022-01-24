@@ -34,7 +34,7 @@ checkversion: version.sh
 # version is actually changed.
 .NOTPARALLEL: main
 .PHONY: main
-main: checkversion proposal.pdf thesis.pdf
+main: checkversion thesis.pdf
 
 proposal.pdf: proposal.tex $(wildcard *.tex)
 	$(LATEXRUN) -W no-all $<
