@@ -3,18 +3,18 @@
 
 This thesis assesses the evolution of performance penalties for
 mitigations against transient execution side-channel attacks by
-measuring their overheads across several generation of Intel and AMD
+measuring their overheads across generation of Intel and AMD
 processors, and introduces the \sys kernel design which eliminates as much
-as half this overhead on OS heavy workloads on old processors.
+as half this overhead for OS heavy workloads on old processors.
 
-On new processors, overhead in the OS boundary has mostly been eliminated in hardware, but the browser boundary is still expensive.
-This means that, for most server workloads, the high mitigation costs have been largely resolved.
-At the same time, most overheads that still exist are caused by a small number of software mitigations, all addressing attacks that were discovered in 2018 or earlier.
-All attacks published since have mitigations with only minor performance impact.
+On post-2018 processors, overhead from OS boundary has mostly been eliminated in hardware.
+This means the high mitigation costs have been largely resolved for server workloads.
+At the same time, JavaScript sandboxing is still expensive.
+Across both workloads, most overheads that remain  are caused by a small number of software mitigations, all addressing attacks that were discovered in 2018 or earlier and attacks published since require mitigations with only minor performance impact for recent processors.
 
 A further analysis of individual mitigations shows that the performance of most mitigation code sequences remains relatively unchanged, and that hardware fixes are responsible for nearly all of the speedup.
 Spectre V1 and Speculative Store Bypass mitigations are significant and haven't declined across processor generations.
-We speculate, however, that it should be possible to reduce these overheads of these mitigations with hardware changes too;
+However, it may be possible to reduce these overheads of these mitigations with hardware changes too;
 for example, the Spectre V1 mitigation has a recognizable pattern of a
 conditional move followed by a load instruction, which could be
 detected by hardware to trigger special handling.

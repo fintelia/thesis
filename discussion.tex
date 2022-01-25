@@ -4,7 +4,7 @@ Watching the stream of new transient execution attacks being published might not
 
 One aspect in particular that that gets overlooked is that production operating systems don't try to provide perfect isolation in the first place.
 This is a challenge for the security community because it is much harder to model, but a tremendous opportunity to the systems community that can ignore low severity side channels (or accept incomplete fixes for more severe ones).
-It means that the intervention proposed to mitigate a specific side channel attack by its creator might be deemed excessive by the developer community.
+It means that an intervention proposed to mitigate a specific side channel attack by its creator might be deemed excessive by the software community.
 
 One example is disabling hyperthreading.
 While theoretically necessary to mitigate certain attacks, Linux by default choses to just ignore that advice and run mutually untrusting processes on adjacent hyperthreads.
@@ -19,14 +19,14 @@ The combination of added cost, reduced utilization, or degraded usability mean t
 
 It is also worth considering performance impacts in context.
 The Zen 3 processor we experimented with might look like it has the worst overhead from Speculative Store Bypass Disable, but that is only on relative terms.
-In fact, it is so much faster than any of the other machines we tested that its runtime with SSBD enabled was lower than any other processor with it disabled.
+In fact, it is so much faster than any of the other machines we tested on the benchmarks, to the point that with SSBD enabled it outperformed all the other processors when they had SSBD disabled.
 That partly comes down to clock speed, but also the generational improvement in CPUs, which almost invariably exceeds the at this point roughly 3\% overhead that OS-level mitigations cause to syscall workloads.
 It is hardly worth closing that gap if it would come at cost of potentially losing out on improvements that could speed up all workloads.
 
 With the context discussed so far, the major area most applicable for future work is JavaScript isolation.
 Across all the processors we studied, overheads from mitigations have been high and unchanging across processor generations.
 A big chunk of JavaScript overhead is from SSBD, which may be solvable by hardware at low cost or avoided by simply not enabling the mitigation.
-However, that requires drawing attention to it: most public documentation emphasizes that SSBD isn't used by default and neglects to mention that critical applications like web browsers do frequently end up running with it enabled.
+However, that requires drawing attention to it: most public documentation emphasizes that SSBD isn't used by default and neglects to mention that critical applications like web browsers frequently run with it enabled.
 
 The second facet of possible future work is addressing Spectre V1 from sandboxed JavaScript code.
 JIT compilers can readily insert appropriate bounds check instructions and speculation barriers to prevent the common variants of the attack.
