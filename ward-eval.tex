@@ -262,7 +262,7 @@ for indirect jumps through the system call table costs 22 cycles.
 
 Because the memory protection mechanisms that \sys uses to expose non-secret
 data to Q domains operates on a 4KB or 2MB granularity, \sys's approach incurs
-some additional memory overhead. Figure~\ref{fig:memoverhead} lists some of
+some additional memory overhead. \autoref{fig:memoverhead} lists some of
 these cases. In general we face a trade-off when filling small dynamic memory
 allocations for Q domain state: either we use an entire page each time, or we
 tolerate higher memory fragmentation because all chucks of memory on a page must

@@ -74,7 +74,7 @@ Processor performance counters are specific to an individual generation of CPU a
 All our processors have a performance counter to measure the number of cycles that the divider is active, and some also have a dedicated performance counter to indicate the number of mispredicted indirect branches.
 By reading one of these counters before and after a block of instructions, we can tell whether executing that code triggered any of the relevant operations.
 
-Figure~\ref{fig:spectre2-sample} sketches out how we use this method to know whether code at a specific target location was executed speculatively.
+\autoref{fig:spectre2-sample} sketches out how we use this method to know whether code at a specific target location was executed speculatively.
 We execute indirect branches that may potentially be mispredicted as targeting a specially constructed landing pad, and see whether we measure any use of the divider corresponding to executing instructions at landing pad.
 Care has to be taken to ensure no divide instructions are executed by the committed execution trace.
 
@@ -126,13 +126,13 @@ However, to maximize the chance of success, we ensure all 64 bits match by shari
                            & Zen 3         & & & & & \\ \hline
   \end{tabular}
   \end{center}
-  \caption{ Same as Table~\ref{table:btb-no-ibrs} but with IBRS \textit{enabled}.
+  \caption{ Same as \autoref{table:btb-no-ibrs} but with IBRS \textit{enabled}.
             IBRS always prevents problematic cases like u$\rightarrow$k, but on many processors blocks all speculation including predicting the target of userspace indirect branches based on prior branches done by the same process (u$\rightarrow$u).
   }
   \label{table:btb-ibrs}
 \end{table*}
 
-Tables~\ref{table:btb-no-ibrs} and \ref{table:btb-ibrs} show the results produced using this methodology.
+\autoref{table:btb-no-ibrs} and \autoref{table:btb-ibrs} show the results produced using this methodology.
 The columns indicate the mode that the attacker and victim run in
 respectively (e.g., u$\rightarrow$k is the classic
 configuration of a user-space attacker trying to misdirect a victim running in kernel space).
@@ -153,7 +153,7 @@ We experimentally validated this claim by poisoning the branch target buffer and
 Our measurements indicated that toggling this mitigation caused the
 user space code to be unable to redirect kernel execution.
 However, subsequent experiments (reported in
-Table~\ref{table:btb-ibrs}) revealed that IBRS was disabling all
+\autoref{table:btb-ibrs}) revealed that IBRS was disabling all
 indirect branch prediction both in user space and kernel space.
 Not having this prediction even for user processes incurs a high performance cost.
 
@@ -164,7 +164,7 @@ Given the lackluster performance of IBRS compared to retpolines, that may not se
 In particular, eIBRS does not disrupt indirect branch prediction at the same privilege level.
 When it is available, Linux by default uses eIBRS instead of retpolines.
 
-As seen in Table~\ref{table:btb-ibrs}, Cascade Lake and the two Ice Lake
+As seen in \autoref{table:btb-ibrs}, Cascade Lake and the two Ice Lake
 processors (the microarchictures that support eIBRS) both do indirect branch prediction only based on prior indirect branches executed in the same privilege mode.
 We speculate this is achieved by using a branch target buffer that is either partitioned or tagged using a bit indicating the current privilege mode.
 

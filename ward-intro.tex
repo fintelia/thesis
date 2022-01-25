@@ -97,11 +97,12 @@ our prototype was able to tackle hard problems brought up by kernel
 services such as a file system and a POSIX virtual memory system.
 
 We evaluate the performance of our \sys prototype using
-\bench~\cite{lebench}, which represents the most important system calls
-for a range of application workloads: Spark, Redis, PostgreSQL,
-Chromium, and building the Linux kernel.  \bench allows us to precisely
-measure the impact of mitigations on system calls that matter
-for applications.
+\bench~\cite{lebench}.
+% , which represents the most important system calls
+% for a range of application workloads: Spark, Redis, PostgreSQL,
+% Chromium, and building the Linux kernel.  \bench allows us to precisely
+% measure the impact of mitigations on system calls that matter
+% for applications.
 % The most recent Intel CPUs (such as Cascade Lake)
 % include hardware mitigations that cannot be fully disabled; however, some of
 % these mitigations are not needed in \sys.  To avoid the performance
@@ -109,14 +110,13 @@ for applications.
 % the previous generation of Intel CPUs (Skylake).
 %\autoref{s:motivation} discusses these hardware mitigation overheads in
 %more detail.
-
-\sys can run the \bench microbenchmarks with small performance
+On the Broadwell CPU, \sys can run the \bench microbenchmarks with small performance
 overheads compared to a kernel without mitigations.  For 18 out of
 the 30 \bench microbenchmarks, \sys's performance is within 5\% of the
 benchmark's performance without any mitigations (but at the cost of some
-extra memory overhead).  In the worst case, the overhead is 4.3$\times$
+extra memory overhead). In the worst case, the overhead is 4.3$\times$
 (context switching between processes, where mitigations are unavoidable).
-In contrast, standard mitigations incur a median overhead of 19\%, and
+In contrast, standard mitigations incur a median overhead of 19\% with
 a worst case of nearly 7$\times$.  To confirm that \bench results translate
 into application performance improvements, we measured the performance
 of \texttt{git status}, which incurs 11.2\% overhead in \sys, compared

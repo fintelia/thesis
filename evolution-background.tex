@@ -82,11 +82,11 @@ a result, the trap handling overhead is often higher than the cost of unconditio
 \subsection{Spectre-Type Attacks}
 
 Spectre-type attacks exploit speculative execution following a misprediction.
-They typically involve a specific gadget involving two memory loads; see Figure~\ref{fig:spectre-gadget} for an example.
+They typically involve a specific gadget involving two memory loads; see \autoref{fig:spectre-gadget} for an example.
 The first load brings sensitive data into a register, and the second uses that value to index into a large array.
 An attacker is later able to determine the result of the first load by seeing which array entry was pulled into the cache.
 
-Notice that the code in Figure~\ref{fig:spectre-gadget} matches the body of the \texttt{if} statement from Figure~\ref{fig:spectre-code} (which shows a Spectre V1 attack).
+Notice that the code in \autoref{fig:spectre-gadget} matches the body of the \texttt{if} statement from \autoref{fig:spectre-code} (which shows a Spectre V1 attack).
 Other Spectre attacks have different supporting code but this same core gadget.
 
 \begin{figure}[h]

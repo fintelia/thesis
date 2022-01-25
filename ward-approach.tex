@@ -1,4 +1,4 @@
-\section{Goal and threat model}
+\section{Goals}
 
 \sys's goal is to reduce the performance cost of mitigations for transient
 execution attacks.  In principle, \sys's techniques can reduce not only
@@ -13,11 +13,11 @@ costs on OS-level mitigations.
 % We hope that \sys's design can allow processor designers to regain some
 % of the absolute performance lost due to hardware mitigation costs.
 
-Our threat model targets scenarios where the adversary
-and the victim are both running code on the same computer.  This might
-arise either in a server setting, where both are running on a cloud
-computing platform, or in a client device, where the adversary code is
-a malicious application or web site.
+% Our threat model targets scenarios where the adversary
+% and the victim are both running code on the same computer.  This might
+% arise either in a server setting, where both are running on a cloud
+% computing platform, or in a client device, where the adversary code is
+% a malicious application or web site.
 
 % Canella et al.~\cite{sok:transient} discuss transient execution attacks
 % in detail, but the salient points of the attack boil down to four steps.
@@ -32,15 +32,14 @@ a malicious application or web site.
 % Fourth, the adversary observes these side effects (e.g., using timing
 % measurements), which allows the adversary to infer the sensitive data.
 
-What makes transient execution attacks challenging to mitigate in an
-OS kernel is a combination of two factors.  The first is that an
-adversary can trigger an OS kernel to speculatively execute code that
+OS kernels make a particularly good target for transient execution attacks.
+First, an adversary can trigger an OS kernel to speculatively execute code that
 leads to leakage of sensitive data.  Even though the adversary cannot
 inject their own code to execute in the kernel, the adversary can often
 have significant influence on what existing kernel code gets executed in
 speculative execution, by specifying particular system call arguments or
 setting up micro-architectural CPU state such as the branch predictor.
-The second factor is that an OS kernel has access to all of the state
+Secondly, an OS kernel has access to all of the state
 on the computer.  This means that an adversary running in one process
 can trick the kernel into leaking state from any other process on the
 same computer.

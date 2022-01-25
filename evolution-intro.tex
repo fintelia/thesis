@@ -10,7 +10,7 @@ We also study internal JavaScript runtime mitigations to understand whether the 
 
 In this thesis, the focus is on security boundaries because mitigations for transient execution attacks usually involve doing extra work for each boundary crossing, often in the form of flushing of microarchitural state or waiting for in-flight operations to complete.
 Each of our workloads are chosen to stress a different security boundary.
-\S\ref{sec:benchmarks:lebench} measures the OS boundary, \S\ref{sec:benchmarks:octane-2} the boundaries between JavaScript sandboxes, \S\ref{sec:benchmarks:vm} between a guest OS and a hypervisor, and \S\ref{sec:benchmarks:parsec} confirms that mitigation overheads are low in the absence of security boundaries.
+\autoref{sec:benchmarks:lebench} measures the OS boundary, \autoref{sec:benchmarks:octane-2} the boundaries between JavaScript sandboxes, \autoref{sec:benchmarks:vm} between a guest OS and a hypervisor, and \autoref{sec:benchmarks:parsec} confirms that mitigation overheads are low in the absence of security boundaries.
 Another possible boundary would be between WASM sandboxes, but we found that other than Swivel~\cite{narayan:swivel} which is already well studied, production WASM engines seem to either rely on site isolation~\cite{reis:site-isolation} or neglect to mitigate transient execution attacks at all.
 
 Our experiments look at a range of processors including both some that predate the discovery of Spectre and Meltdown but which are still in active use, newer ones which incorporate some mitigations, and even more recent models with still more mitigations.
@@ -20,9 +20,9 @@ This informs our microbenchmarking of individual mitigations.
 For mitigations that incur meaningful overhead, we investigate in more detail to understand their performance characteristics.
 
 We seek to answer the following questions: 
-Which attacks are primarily responsible for the performance impact, and does that vary across processors or workloads? (\S\ref{s:benchmarks})
-What drives the cost of mitigations for those attacks? (\S\ref{s:evolution-eval})
-What predictions can we make about mitigation overheads going forward? (\S\ref{s:evolution-discussion})
+Which attacks are primarily responsible for the performance impact, and does that vary across processors or workloads? (\autoref{s:benchmarks})
+What drives the cost of mitigations for those attacks? (\autoref{s:evolution-eval})
+What predictions can we make about mitigation overheads going forward? (\autoref{s:evolution-discussion})
 
 
 % On workloads like the LEBench benchmark suite~\cite{ren:lebench} that stress the user-kernel interface we find overheads have declined from over 30\% on our oldest processor to under 3\% on the most recent CPUs.

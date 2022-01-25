@@ -15,7 +15,7 @@ On processors vulnerable to Meltdown, production operating systems use page tabl
 This approach adds significant overhead to every user-kernel boundary crossing, because it requires switching the page tables every time via a \texttt{mov} to the \texttt{\%cr3} register.
 Among the systems we evaulated, only Broadwell and Skylake are vulnerable to Meltdown.
 
-As seen in Table~\ref{table:meltdown}, on processors vulnerable to Meltdown the cycles required to swap page tables when entering and again on leaving the kernel far exceeds the time for the actual \texttt{syscall} or \texttt{sysret} instruction that triggers the entry/exit.
+As seen in \autoref{table:meltdown}, on processors vulnerable to Meltdown the cycles required to swap page tables when entering and again on leaving the kernel far exceeds the time for the actual \texttt{syscall} or \texttt{sysret} instruction that triggers the entry/exit.
 For syscalls, the Ice Lake Client CPU takes fewer cycles (which will prove a pattern---likely due to its lower base clock speed) and the Cascade Lake model stands out by taking longer than both earlier and later Intel models.
 
 \begin{table}[h]
@@ -46,7 +46,7 @@ The other substantial mitigation on LEBench is clearing CPU buffers, which is re
 On processors that are vulnerable to MDS, a microcode patch extends the \texttt{verw} instruction to also implement this clearing functionality.
 Without the patch the \texttt{verw} only has its old behavior related to segmentation.
 
-Table~\ref{table:verw} shows that the cost of performing this flush is approximately 500 cycles.
+\autoref{table:verw} shows that the cost of performing this flush is approximately 500 cycles.
 This cost is substantial because microarchitectural buffers must be flushed not
 just on context switches between processes but also on every kernel-to-user privilege transition.
 Recent Intel processors and all processors from AMD are not vulnerable to MDS.
@@ -114,7 +114,7 @@ amd_retpoline:
   \label{fig:retpoline-samples}
   \end{figure}
 
-Table~\ref{table:retpoline} shows extra cycles of each of these variations across our machines, relative to a baseline of doing an unsafe indirect branch.
+\autoref{table:retpoline} shows extra cycles of each of these variations across our machines, relative to a baseline of doing an unsafe indirect branch.
 One noticeable takeaway is that IBRS adds tens of cycles of overhead to indirect branches except on processors with eIBRS support (Cascade Lake and the two Ice Lake CPUs) where it is inexpensive.
 Retpolines however can be as or even more costly.
 
@@ -156,7 +156,7 @@ We verified across all our processors that executing an IBPB between poisoning t
 Oddly, however, we noticed that the performance counters report that indirect branches executed after an IBPB result in mispredictions.
 We speculate that this behavior is caused by the IBPB setting all entries in the BTB to point to a specific harmless gadget rather than simply clearing them.
 
-Table~\ref{table:ibpb} shows that the cost of an IBPB has generally
+\autoref{table:ibpb} shows that the cost of an IBPB has generally
 declined over time from many thousands of cycles on the Broadwell
 server to hundreds of cycles on Cascade Lake and Ice Lake Server.
 This improvement is likely related to the fact that older processors implemented IBPB via a microcode patch, whereas newer ones may have some amount of support in hardware.
@@ -194,7 +194,7 @@ Since any code compiled with the regular toolchains will already have this prope
 Secondly, when context switching between different user threads Linux will fill the the return stack buffer with harmless entries.
 This is required so that any interrupted retpoline sequence will avoid jumping to any Spectre gadgets---meaning that despite not causing a speculative jump to the intended retpoline landing point, it will still produce safe results.
 
-Table~\ref{table:rsb-fill} shows the cycles required to fill the return stack buffer on each processor.
+\autoref{table:rsb-fill} shows the cycles required to fill the return stack buffer on each processor.
 There is improvement across generations of Intel processors but less of a clear trend across the AMD CPUs.
 These changes are likely realized more by improving performance overall
 than trying to optimize for return stack buffer filling specifically, but regardless, the cost of these mitigations is relatively minor compared to the total overhead of doing a context switch between processes (which takes at least several thousand cycles)
@@ -231,7 +231,7 @@ We discuss each of them in more detail.
 One mitigation for Spectre V1 is to execute an \texttt{lfence} instruction immediately following each bounds check and \texttt{swapgs} instruction.
 This instruction waits until all prior loads have resolved, thereby preventing any subsequent Spectre gadget from executing.
 The cost of an \texttt{lfence} varies significantly based on operations in flight.
-Table~\ref{table:lfence} shows the results of a simple microbenchmark of running an \texttt{lfence} instruction in a loop.
+\autoref{table:lfence} shows the results of a simple microbenchmark of running an \texttt{lfence} instruction in a loop.
 An important caveat is that the performance will depend a lot on what other instructions have been executed prior so this is not a fully representative experiment.
 
 We see that all times are roughly of the same scale, with newer processors showing better performance.
@@ -288,11 +288,11 @@ A downside is that this can come at substantial cost, even when normal non-malic
 
 The compromise reached by the Linux developers was to enable SSBD only for processes which opted into it via its \texttt{prctl} or \texttt{seccomp} interfaces.
 To see the full impact of this mitigation if enabled all the time, we measured the slowdown it causes to the swaptions benchmark from PARSEC.
-Figure~\ref{fig:ssbd} shows that the slowdown can be as much as 34\%,
+\autoref{fig:ssbd} shows that the slowdown can be as much as 34\%,
 and is trending worse over time.
 It isn't entirely clear why this would be the case, but it may be related to newer processors have a more complete SSBD implementation compared to what was possible via microcode patches.
 These overheads are especially considerable given that the combined
-impact of all default mitigations for this benchmarks is well under one percent (\S\ref{sec:benchmarks:parsec}).
+impact of all default mitigations for this benchmarks is well under one percent (\autoref{sec:benchmarks:parsec}).
 
 \subsection{L1 Terminal Fault}
 One other attack worth mentioning is L1 Terminal Fault, which can leak the entire contents of the L1 cache when page tables contain PTEs with certain bit patterns.

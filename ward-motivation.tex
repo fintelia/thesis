@@ -45,7 +45,7 @@ that impact application
 performance the most, this time examining individual system calls instead of only the geometric mean over all of them.
 We evaluate the Linux kernel (version 5.6.13),
 comparing two configurations: one where all mitigations are disabled
-and one where all are enabled. Figure~\ref{fig:linuxslowdown} shows
+and one where all are enabled. \autoref{fig:linuxslowdown} shows
 the relative slowdown between the two configurations for 13 kernel
 operations of \bench that don't involve networking (i.e., without
 \texttt{send}, \texttt{recv}, \texttt{epoll}).  There are two sets of
@@ -54,7 +54,7 @@ and the newer Cascade Lake.  On the older Broadwell CPUs,
 system calls that perform the least kernel work are impacted the most
 (e.g., \texttt{getpid()}), but a wide range of operations are impacted
 significantly (25\%-100\% slowdowns). These observations are similar
-to what we saw in Section \ref{sec:benchmarks:lebench} and to the observations made by Ren et. al.~\cite{lebench}.
+to what we saw in \autoref{sec:benchmarks:lebench} and to the observations made by Ren et. al.~\cite{lebench}.
 
 % The newer Cascade Lake CPUs exhibit lower relative overheads, partly
 % because the processors include hardware mitigations for some of the

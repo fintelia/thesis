@@ -60,13 +60,13 @@ There are a whole range of other transient execution attacks, which can be divid
 \begin{itemize}
 \item \textbf{Spectre type} attacks like the one described above rely on processor misprediction to incompletely roll back executed instructions.
 \item \textbf{Meltdown type} attacks achieve the same effect using a trapping operation to trigger the roll back.
-\item \textbf{Microarchitural Data Sampling (MDS) type} attacks exploit the processor's forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthead or previously running task, rather than the correct values.
+\item \textbf{Microarchitural Data Sampling (MDS) type} attacks exploit the processor's forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthread or previously running task, rather than the correct values.
 \end{itemize}
 
-\subsection{Attack Model}
+\subsection{Threat Model}
 
 To understand the wide range of attacks, it is useful to have a framework to describe them all.
-Based on the framework from Kiriansky, et al.~\cite{kiriansky:dawg} we can give a unifying definition: a transient execution attack involves an attacker and victim application co-located on the same physical machine in which the attacker (i) guides speculative control flow to cause, (ii) an access to a victim secret, (iii) that is transmitted via a microarchitural covert channel, (iv) to a receiver running in the attacker's protection domain. 
+Based on the framework from Kiriansky, et al.~\cite{kiriansky:dawg} we can give a unifying definition: a transient execution attack involves an attacker and victim application co-located on the same physical machine in which the attacker (i) guides speculative control flow to cause, (ii) an access to a victim secret, (iii) and for it to be transmitted via a microarchitectural covert channel, (iv) to a receiver in the attacker's protection domain.
 These steps are depicted in \autoref{fig:attack-steps}.
 
 \begin{figure*}[h]
@@ -75,9 +75,10 @@ These steps are depicted in \autoref{fig:attack-steps}.
     \label{fig:attack-steps}
 \end{figure*}
 
-In Spectre V1, the attacker (i) poisons the branch predictor, (ii) which causes an out of bounds load to pull the victim secret into a register, (iii) whose value determines which cache line is loaded by a second memory operation, (iv) so that they can later learn the secret based on which entries are present in the cache.
+In Spectre V1 for instance, the attacker (i) poisons the branch predictor, (ii) which causes an out of bounds load to pull the victim secret into a register, (iii) so a second memory operation pulls in a cache line whose index is determined by the secret, (iv) so that the attacker can recover the secret by probing which entries are present in the cache.
 However, exactly how each step is conducted varies between attacks.
 For instance, there are many prediction structures within a modern CPU can be leveraged to reroute speculative control flow, and the access in (ii) can be performed via a gadget in victim application or entirely using instructions located within the attacker application.
+The final receive step also frequently requires some degree of decoding the observed value to recover the original secret.
 
 Transient execution attacks are possible in setting with code running for two mutually distrusting entities on the same CPU.
 This can be a user application attacking the OS, a user application targeting other user applications, a guest OS exploiting the hypervisor, and so forth.
