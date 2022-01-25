@@ -16,9 +16,9 @@ In addition, we consider the case of a compute-intensive workload running within
 This involves no protection boundary crossings, and thus measures only the impact of mitigations the operating system keeps enabled all the time.
 
 \subsection{Methodology}
-In the following benchmarks we evaluate across seven different CPU microarchitectures from two vendors.
+In the following benchmarks we evaluate across eight different CPU microarchitectures from two vendors.
 Considering different microarchictures enables us to observe design improvements between successive releases.
-Table~\ref{fig:cpus} lists out detailed information on each CPU.
+\autoref{fig:cpus} lists out detailed information on each CPU.
 
 \begin{table*}[t]
     \begin{center}
@@ -42,7 +42,7 @@ The processors we evaluate span from before the discovery of Spectre and Meltdow
 Despite sharing the same name, Ice Lake Client and Ice Lake Server are different microarchitectures and were designed separately.
 All machines have an up-to-date kernel: either version 5.11, the 5.14 release, or the 5.4 long-term maintenance release.
 
-This diversity of systems gives a broad view of the ecosystem, but at the same time our work is complicated by all the different dimensions they vary on.
+This diversity of systems gives a broad view of the ecosystem, but all the different dimensions they vary on complicates our work.
 The processors range from 1.0 GHz to 3.7 Ghz and from 2 cores to 32 cores.
 Newer ones incorporate not just design improvements, but also tend to have smaller transistors, faster RAM, and so forth.
 For these reasons our experiments focus primarily on relative differences between configurations of the same machine.
@@ -67,7 +67,7 @@ Benchmark scores for individual runs of the same configuration would vary by a c
 
 LEBench~\cite{ren:lebench} is a collection of microbenchmarks for measuring specific operating system operations.\footnote{To align with experiments from elsewhere in this thesis, we use the version of the LEBench benchmarks distributed with \sys~\cite{behrens:ward} .}
 In this experiment, we track the geometric mean of benchmarks from the suite.
-As seen in Figure~\ref{fig:lebench} the overhead has decreased sharply for newer processors:
+As seen in \autoref{fig:lebench} the overhead has decreased sharply for newer processors:
 CPUs that incorporate hardware mitigations (for Intel) or from a vendor whose CPUs were not vulnerable to all attacks in the first place (AMD) exhibit substantially smaller overheads.
 
 Also notable is that only a small number of mitigations are responsible for nearly all of the overheads.
@@ -83,7 +83,7 @@ Collectively, all unlisted mitigations caused a fraction of a percent slowdown o
 \end{figure}
 
 Octane 2 is a benchmark for JavaScript performance, which we run from within Firefox.
-Figure~\ref{fig:octane2} plots the percent decrease in scores caused by enabling each mitigation in turn.
+\autoref{fig:octane2} plots the percent decrease in scores caused by enabling each mitigation in turn.
 JavaScript mitigations (Index masking, object mitigations, and ``other JavaScript'') are shown in blue, while operating system controlled mitigations including Speculative Store Bypass Disable (SSBD) and ``other OS'' are shown above them in green.
 
 All JavaScript mitigations are implemented by the JIT engine inserting extra instructions into the generated instruction stream, and are used to prevent different variations of the Spectre V1 attack.
@@ -92,7 +92,11 @@ It does so by placing a conditional move instruction before every array access w
 This check overall takes very little time but it prevents the CPU from starting to pull the array contents into cache until the array length is known.
 Across many millions of array accesses in the Octane 2 benchmark, this ends up causing a non-trivial cost.
 
-Speculative Store Bypass Disable is an OS level mitigation that is disabled by default for most processes, but is enabled for Firefox because it uses seccomp.
+Speculative Store Bypass Disable is an OS level mitigation that is disabled by default for most processes, but on the kernel versions we're using is enabled for Firefox because it uses seccomp.
+Starting with Linux 5.16 released in January 2022, the kernel by default no-longer enables the mitigation for seccomp processes~\cite{phoronix:ssbd-defaults}.
+Applications can still enable the mitigation manually, but Firefox releases so far seem to never override the kernel setting.
+
+This may stop being relevant.
 Intel has reserved a bit in in the \texttt{ARCH\_CAPABILITIES} model-specific register to indicate that a given processor isn't vulnerable to Speculative Store Bypass and therefore that the associated mitigation is neither needed nor implemented.
 However, we do not know of any CPUs for either vendor that set that bit, not even models that came out years after the attack was discovered.
 
@@ -100,34 +104,36 @@ However, we do not know of any CPUs for either vendor that set that bit, not eve
 \label{sec:benchmarks:vm}
 
 We measure two different virtual machine workloads relevant to how VMs are used in production.
-The performance of running LEBench inside of a KVM virtual machine with and without host mitigations enabled mirrors running a customer application on a cloud provider.
+The performance of running LEBench inside of a virtual machine with and without host mitigations enabled mirrors running a customer application on a cloud provider.
 Execution primarily (but not exclusively) stays within the VM so we would expect host mitigations to have limited impact on the performance observed by the guest.
 This matches our observations: measured overhead was $\pm 3$\% on all systems, signalling that the mitigations applied by a hypervisor do not have significant impact.
 Some runs suggested a slowdown in the range of 1-3\%, but our methodology resulted in too much variability between runs to be confident whether or not that was caused by noise. 
 In any case, we were unable to attribute the slowdown to specific mitigations.
 
 Secondly, we measure the overhead of virtual machine exits by running the \textit{smallfile} and \textit{largefile} microbenchmarks from LFS~\cite{rosenblum:lfs} against an emulated disk.
-In this workload there are significant numbers of security boundary crossings because every access to the emulated disk requires running code within the hypervisor.
 The median overhead was under $2$\%, but once again, we observed high variability between runs.
-On many configurations there was no statistically significant difference between running with and without host mitigations at all.
+This workload performs many security boundary crossings because every access to the emulated disk requires running code within the hypervisor.
+However, in contrast to LEBench that reached millions of system calls per second, the higher cost of VM exits meant that this experiment only reached several tens of thousands of VM exits per second.
+We believe that this explains the lack of a clear slowdown; the comparatively small number of protection domain crossings means that even though the time spent on mitigations during a single VM exit is likely higher than for a system call, in relative terms it is not enough to meaningfully impact the end-to-end performance.
 
 \subsection{PARSEC}
 \label{sec:benchmarks:parsec}
 As a final experiment we measure the overhead of running the \textit{swaptions}, \textit{facesim}, and \textit{bodytrack} benchmarks from the PARSEC suite.
-These were chosen to get good coverage of benchmarks with different working set sizes.
+These were chosen to get good coverage of compute-intensive benchmarks with different working set sizes.
 None involve significant numbers of calls into the operating system nor user-level sandboxing, as explored by the previous experiments, which makes them ideal to measure the impact solely of ``always on'' mitigations that the OS applies to running processes.
 
 We were unable to observe any meaningful difference between running with and without the default set of mitigations: total runtime was usually within $\pm0.5$\% for the two configurations, and never differed by more than $2$\%.
 This serves as a reminder that slowdowns from transient execution attack mitigations aren't relevant to all workloads.
 
-The one exception is that when we force-enabled mitigations for Speculative Store Bypass, we observed significant overheads which \S\ref{sec:ssb} explores in more detail.
+The one exception is that we observed significant overheads by force-enabling mitigations for Speculative Store Bypass.
+\autoref{sec:ssb} explores this more detail.
 
 \subsection{Summary}
 Each of these benchmarks plots a different trajectory of mitigation costs.
 Workloads that stress the operating system interface have received the most attention, and overheads on LEBench have gone from over 30\% on older Intel CPUs to under 3\% on the latest models, thanks to fixes for several of the attacks.
 By contrast, none of the attacks impacting JavaScript performance have been addressed in hardware and overhead on Octane 2 has remained in the range of 15\% to 25\%.
-Our compute-intensive benchmark has negligible overhead regardless of the processor, and we did not observe overheads on either of the two VM workloads measured.
-These trends are consistent with prior work from Phoronix~\cite{phoronix:three-years} which found big improvements on OS workloads (perf-bench, ctx\_clock, etc.), moderate but consistent overheads for web browsers (Selenium), and minimal overheads for the more compute-intensive workloads, but did not investigate the causes.
+Our compute-intensive benchmark has negligible overhead regardless of the processor, and we did not observe significant overheads on either of the two VM workloads measured.
+These trends are consistent with prior work from Phoronix~\cite{phoronix:three-years} which found big improvements on OS workloads (perf-bench, ctx\_clock, etc.), moderate but consistent overheads for web browsers (Selenium), and minimal overheads for the more compute-intensive workloads.
 
 There has been a significant effort from computer architecture researchers towards addressing Spectre V1~\cite{barber:specshield, weisse:nda, ainsworth:muontrap,yu:stt,yu:sdo}, but interestingly software mitigations for the attack had no measurable impact on LEBench performance.
 By contrast, they account for around half the overhead on the browser workload.
