@@ -9,17 +9,17 @@
 \midrule
 V1 (Bound Check Bypass) & bounds clipping & partial \\
 V1.1 (Bounds Check Bypass Store) & lfence & partial \\
-V1.2 (Read-only Protection Bypass) & lfence & n/a (no in-kernel software sandbox) \\
+V1.2 (Read-only Protection Bypass) & lfence & n/a (no kernel sandbox) \\
 V2 (Branch Target Injection) &	retpoline & yes \\
 \quad \ditto & speculation barrier	&	yes \\
 \quad \ditto & return stack buffer filling	&	yes \\
-\quad \ditto & disable spec before BIOS calls &	n/a (no calls to BIOS in \sys) \\
+\quad \ditto & set IBRS before BIOS call &	n/a (no BIOS calls) \\
 V3 (Meltdown) & Kernel page table isolation &	yes \\
 V3a (System Register Read) & microcode & yes \\
 V4 (Speculative Store Bypass) &	disable spec. or ctx. switch & yes \\
-LazyFPU	& hardware-assisted save/restore & yes \\
+LazyFPU	& hardware FP save/restore & yes \\
 SpectreRSB & return stack buffer filling & yes \\
-L1TF &	cache flush, no SMT & 	n/a (no VM entry in \sys)  \\
+L1TF &	cache flush, no SMT & 	n/a (no VM entry)  \\
 \quad \ditto & no invalid PTEs	&	yes \\
 PortSmash & no SMT  &	no \\
 Microarchitectural Data Sampling  & CPU buffer clearing & yes \\
@@ -30,7 +30,7 @@ Meltdown-PK
 & address space isolation & n/a (no protection keys) \\
 Meltdown-BR
 (bounds check instr.)
-& lfence & n/a (no bounds check instructions) \\
+& lfence & n/a (no MPX instrs.) \\
 \end{tabular}
 \caption{Transient execution mitigations implemented in \sys.}
 \label{fig:mitigations-impl}
