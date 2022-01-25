@@ -39,9 +39,9 @@ system calls?  (\autoref{ss:faster})
 To answer these questions, we consider three different configurations of \sys:
 
 \begin{itemize}
-\item Baseline: \sys with no mitigations against side channels.
+\item Baseline: \sys with no mitigations against transient execution attacks.
 
-\item Linux-style: \sys with standard mitigations against side channels,
+\item Linux-style: \sys with standard mitigations against transient execution attacks,
 mirroring the approach taken by the Linux kernel.  This configuration does
 not use separate Q domains; all system calls directly enter the K domain.
 
@@ -53,9 +53,8 @@ K domain implements the same mitigations as in Linux-style.
 
 \sys's design is aimed at reducing the overhead of mitigations
 associated with system calls.  To zoom in on the system call overhead,
-we evaluate \sys's performance using \bench~\cite{lebench}, a
-collection of system call workloads representative of a range of real
-applications.  This allows us to precisely report and explain the
+we evaluate \sys's performance using \bench~\cite{lebench}.
+This allows us to precisely report and explain the
 effect of \sys's techniques on individual system calls.  We don't
 report results for the networking benchmarks in \bench, because the
 \sys prototype doesn't have a suitable in-kernel network stack.
@@ -120,7 +119,7 @@ There are several microbenchmarks (e.g., the bigger \texttt{read} and
 system call.  These system calls immediately enter the K domain and
 thus perform identical to \sys with full mitigations, and have the
 same overhead.  These system calls also perform much work in the kernel and
-the overhead of the 1 world switch is amortized by that work.
+the overhead of the one world switch is amortized by that work.
 
 \begin{figure}
 \small

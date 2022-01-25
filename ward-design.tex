@@ -56,7 +56,7 @@ This design allows many system calls to execute in the Q domain,
 with no mitigation overhead.  As a simple example,
 \texttt{getpid} does not access any sensitive data; it needs
 access to only the kernel text and its own process structure.  A more
-interesting example is mapping anonymous memory: it requires access
+interesting example is mapping anonymous memory: this requires access
 to the process's own page table and to the memory allocator, but not
 other processes' page tables or pages.
 
@@ -161,19 +161,19 @@ stack during a world switch.
 L1TF & x & x & \\
 
 \midrule
-V1 (Bound Check Bypass) & & x & \\
-V1.1 (Bounds Check Bypass Store) & & x &\\
-V3 (Meltdown) && x &\\
-V4 (Speculative Store Bypass) &	 & x &  \\
+Spectre V1 & & x & \\
+Bounds Check Bypass Store & & x &\\
+Meltdown && x &\\
+Speculative Store Bypass &	 & x &  \\
 
 \midrule
-V2 (Branch Target Injection) & & x & x \\
+Spectre V2 & & x & x \\
 Microarchitectural Data Sampling && x & x\\
 \qquad (Fallout, RIDL, Zombie Load, etc.) \\
 
 \midrule
 
-LazyFPU &&& x \\
+LazyFP &&& x \\
 SpectreRSB &&& x\\
 
 \midrule
@@ -181,7 +181,7 @@ PortSmash & \multicolumn{3}{c}{Not applicable} \\
 Load Value Injection & \multicolumn{3}{c}{Not applicable} \\
 Meltdown-PK (protection key bypass) & \multicolumn{3}{c}{Not applicable} \\
 Meltdown-BR (bounds check instr. bypass) & \multicolumn{3}{c}{Not applicable} \\
-V1.2 (Read-only Protection Bypass) & \multicolumn{3}{c}{Not applicable} \\
+Read-only Protection Bypass & \multicolumn{3}{c}{Not applicable} \\
 
 \end{tabular}
 \caption{The mitigations implemented in software by \sys{}.}
@@ -225,13 +225,13 @@ no confidential data is available in the Q domain.  Recent fixes from Intel reso
 software mitigations.
 
 The next category of attacks require mitigation both in the K domain and
-on context switch.  Spectre v2 and MDS attacks can allow an adversary to
+on context switch. Both Spectre V2 and MDS can allow an adversary to
 obtain sensitive data either from the OS kernel or from another process.
 However, no mitigations for these attacks are needed in the Q domain
 due to \contract{}: there is no sensitive data to leak in the Q domain
 of the currently running process.
 
-For some attacks, such as LazyFPU and SpectreRSB, mitigations are only
+For some attacks, such as LazyFP and SpectreRSB, mitigations are only
 required on context switch, because the attacks involve process-to-process
 leakage.
 
@@ -305,7 +305,7 @@ that pool.  All public-pool pages are mapped in every Q domain.
 When the \sys kernel switches from executing one process to another, it
 must perform a world switch, to ensure that confidential data does not
 leak across processes (such as the saved CPU registers that the kernel
-might save on the stack).  However, if a multi-threaded application
+might keep on the stack).  However, if a multi-threaded application
 is running, there is no security reason to perform a world switch when
 switching between multiple threads in the same process---all of the
 threads have the same privileges and have access to the same process

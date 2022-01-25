@@ -7,17 +7,17 @@
 \begin{tabular}{lll}
 {\bf Transient execution variant} & {\bf Strategy} & {\bf Support} \\
 \midrule
-V1 (Bound Check Bypass) & bounds clipping & partial \\
-V1.1 (Bounds Check Bypass Store) & lfence & partial \\
-V1.2 (Read-only Protection Bypass) & lfence & n/a (no kernel sandbox) \\
-V2 (Branch Target Injection) &	retpoline & yes \\
+Spectre V1 & bounds clipping & partial \\
+Bounds Check Bypass Store & lfence & partial \\
+Read-only Protection Bypass & lfence & n/a (no kernel sandbox) \\
+Spectre V2 &	retpoline & yes \\
 \quad \ditto & speculation barrier	&	yes \\
 \quad \ditto & return stack buffer filling	&	yes \\
 \quad \ditto & set IBRS before BIOS call &	n/a (no BIOS calls) \\
-V3 (Meltdown) & Kernel page table isolation &	yes \\
-V3a (System Register Read) & microcode & yes \\
-V4 (Speculative Store Bypass) &	disable spec. or ctx. switch & yes \\
-LazyFPU	& hardware FP save/restore & yes \\
+Meltdown & Kernel page table isolation &	yes \\
+System Register Read & microcode & yes \\
+Speculative Store Bypass &	disable spec. or ctx. switch & yes \\
+LazyFP	& hardware FP save/restore & yes \\
 SpectreRSB & return stack buffer filling & yes \\
 L1TF &	cache flush, no SMT & 	n/a (no VM entry)  \\
 \quad \ditto & no invalid PTEs	&	yes \\

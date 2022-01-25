@@ -49,10 +49,10 @@ to significantly reduce the overhead of mitigating a particular subset
 of transient execution attacks---namely, those that leak arbitrary
 memory contents.  
 The \contract{} says that physical memory that is unmapped (i.e., physical memory that has no virtual address) cannot be accessed speculatively. 
-Although not specifically guaranteed by the architecture, this property seems to be true even on pre-2018 CPUs and thus provides a theoretical baseline for what information transient execution attacks can leak on those processors.
-By bounding what data can be leaked, \contract can significantly reduce the cost of mitigations.
+Although not specifically guaranteed by the x86 architecture, this property seems to be true even on pre-2018 CPUs and thus provides a theoretical baseline for what information transient execution attacks can leak on those processors.
+By bounding what data can be leaked, the \contract can significantly reduce the cost of mitigations.
 
-We have evidence that most processor architectures already adhere to the \contract. AMD
+We have evidence that most processor models already adhere to the \contract. AMD
 states that ``AMD processors are designed to not speculate into memory
 that is not valid in the current virtual address memory range defined
 by the software defined page tables''~\cite[pg. 2]{amd:speculation},

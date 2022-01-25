@@ -3,7 +3,7 @@
 \sys's goal is to reduce the performance cost of mitigations for transient
 execution attacks.  In principle, \sys's techniques can reduce not only
 the cost of software mitigations, but also allow processor designers
-to avoid costly mitigations in hardware.  Practically, however, \sys 
+to avoid mitigations in hardware.  Practically, however, \sys 
 is most applicable to older Intel processors, which incur the largest
 costs on OS-level mitigations.
 
@@ -33,29 +33,29 @@ costs on OS-level mitigations.
 % measurements), which allows the adversary to infer the sensitive data.
 
 OS kernels make a particularly good target for transient execution attacks.
-First, an adversary can trigger an OS kernel to speculatively execute code that
-leads to leakage of sensitive data.  Even though the adversary cannot
+First, an adversary can cause the kernel to speculatively execute code that
+leads to leakage of sensitive data. Even though the adversary cannot
 inject their own code to execute in the kernel, the adversary can often
 have significant influence on what existing kernel code gets executed in
 speculative execution, by specifying particular system call arguments or
 setting up micro-architectural CPU state such as the branch predictor.
 Secondly, an OS kernel has access to all of the state
-on the computer.  This means that an adversary running in one process
+on the computer. This means that an adversary running in one process
 can trick the kernel into leaking state from any other process on the
 same computer.
 
 Current OS kernel designs, such as Linux, have two approaches for
 mitigating transient execution attacks.  The first approach is to make
 sure that the CPU does not speculatively execute any code that could
-end up accessing sensitive data.  This approach includes techniques such
-as retpolines and other speculation barriers.  The second approach is to
+end up accessing sensitive data.  This approach includes techniques like
+retpolines and other speculation barriers.  The second approach is to
 make sure that sensitive data is flushed from microarchitectural state,
 such as flushing CPU caches and buffers when returning from a system
 call or when context-switching between processes.  Both incur significant
 performance overheads.
 
 Transient execution attacks can leak data across many protection domain
-boundaries, such as leaking secrets from the kernel to an adversary's
+boundaries, including leaking secrets from the kernel to an adversary's
 process, or leaking secrets from one process to a different process,
 or even leaking secrets within a single process that implements its
 own internal protection domains.  Much like in the Linux kernel, the
@@ -290,7 +290,7 @@ L1TF & & Yes & Yes (depending on PTE contents)\\
 \midrule
 
 Spectre variants & \multirow{3}{0.75in}{Core state} & No & Yes \\
-LazyFPU & & No & Yes \\
+LazyFP & & No & Yes \\
 System reg. read & & No & Yes \\
 
 \midrule

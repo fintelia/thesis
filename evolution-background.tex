@@ -118,7 +118,7 @@ The only available mitigation is a processor mode called Speculative Store Bypas
 Given the difficulty of exploiting Speculative Store Bypass and the considerable cost of mitigating it, by default SSBD is only used by Linux for processes that specifically opt in to it via \texttt{prctl} or \texttt{seccomp}.
 
 \subsection{Microarchitectural Data Sampling (MDS)}
-Microarchitectural Data Sampling describes class of attacks involving leaks from various microarchitectural buffers within the CPU.
+Microarchitectural Data Sampling describes class of attacks involving leaks from various microarchitectural buffers within the CPU~\cite{canella:fallout, schwarz:zombieload,schaik:ridl}.
 Unlike other Spectre and Meltdown variants, MDS attacks cannot be targeted to specific victim addresses which makes them more challenging to exploit.
 
 From an attacker perspective there are many different variations of MDS with their own specific mechanisms and capabilities.
