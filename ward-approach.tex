@@ -4,7 +4,7 @@
 execution attacks.  In principle, \sys's techniques can reduce not only
 the cost of software mitigations, but also allow processor designers
 to avoid costly mitigations in hardware.  Practically, however, \sys 
-is most applicable to older Intel processors which incur the largest
+is most applicable to older Intel processors, which incur the largest
 costs on OS-level mitigations.
 
 % This chapter focuses on reducing the overhead of software mitigations, 
@@ -19,18 +19,18 @@ arise either in a server setting, where both are running on a cloud
 computing platform, or in a client device, where the adversary code is
 a malicious application or web site.
 
-Canella et al.~\cite{sok:transient} discuss transient execution attacks
-in detail, but the salient points of the attack boil down to four steps.
-First, the processor speculatively executes some code, which accesses
-sensitive data that the victim wants to keep secret.  Second, during the
-speculative execution, the processor updates microarchitectural state
-in a way that depends on the sensitive data (e.g., bringing in cache
-lines into a shared L3 cache whose addresses depend on the sensitive
-data).  Third, the processor aborts the speculative execution, but does
-not fully roll back all of its side effects (e.g., changes to the L3
-cache), because doing so would be prohibitively expensive in hardware.
-Fourth, the adversary observes these side effects (e.g., using timing
-measurements), which allows the adversary to infer the sensitive data.
+% Canella et al.~\cite{sok:transient} discuss transient execution attacks
+% in detail, but the salient points of the attack boil down to four steps.
+% First, the processor speculatively executes some code, which accesses
+% sensitive data that the victim wants to keep secret.  Second, during the
+% speculative execution, the processor updates microarchitectural state
+% in a way that depends on the sensitive data (e.g., bringing in cache
+% lines into a shared L3 cache whose addresses depend on the sensitive
+% data).  Third, the processor aborts the speculative execution, but does
+% not fully roll back all of its side effects (e.g., changes to the L3
+% cache), because doing so would be prohibitively expensive in hardware.
+% Fourth, the adversary observes these side effects (e.g., using timing
+% measurements), which allows the adversary to infer the sensitive data.
 
 What makes transient execution attacks challenging to mitigate in an
 OS kernel is a combination of two factors.  The first is that an

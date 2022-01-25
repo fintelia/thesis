@@ -118,18 +118,19 @@ These were chosen to get good coverage of benchmarks with different working set 
 None involve significant numbers of calls into the operating system nor user-level sandboxing, as explored by the previous experiments, which makes them ideal to measure the impact solely of ``always on'' mitigations that the OS applies to running processes.
 
 We were unable to observe any meaningful difference between running with and without the default set of mitigations: total runtime was usually within $\pm0.5$\% for the two configurations, and never differed by more than $2$\%.
-This matches prior reports that compute intensive workloads without interactions with the OS do not suffer much from mitigations, and serves as a reminder that slowdowns from transient execution attack mitigations aren't relevant to all workloads.
+This serves as a reminder that slowdowns from transient execution attack mitigations aren't relevant to all workloads.
 
 The one exception is that when we force-enabled mitigations for Speculative Store Bypass, we observed significant overheads which \S\ref{sec:ssb} explores in more detail.
 
 \subsection{Summary}
 Each of these benchmarks plots a different trajectory of mitigation costs.
-Workloads that stress the operating system interface have received the most attention, and overheads on LEBench have gone from over 30\% on older Intel CPUs to under 3\% on the latest models from both vendors.
-By contrast, JavaScript overhead has been consistently in the range of 15\% to 25\%, with the newest AMD processor we tested paying an even larger cost.
-Our compute-intensive benchmark has negligible overhead regardless of the processor.
+Workloads that stress the operating system interface have received the most attention, and overheads on LEBench have gone from over 30\% on older Intel CPUs to under 3\% on the latest models, thanks to fixes for several of the attacks.
+By contrast, none of the attacks impacting JavaScript performance have been addressed in hardware and overhead on Octane 2 has remained in the range of 15\% to 25\%.
+Our compute-intensive benchmark has negligible overhead regardless of the processor, and we did not observe overheads on either of the two VM workloads measured.
+These trends are consistent with prior work from Phoronix~\cite{phoronix:three-years} which found big improvements on OS workloads (perf-bench, ctx\_clock, etc.), moderate but consistent overheads for web browsers (Selenium), and minimal overheads for the more compute-intensive workloads, but did not investigate the causes.
 
-Preventing Spectre V1 has been a significant goal for computer architecture research, but interestingly software mitigations for it had no measurable impact on LEBench performance.
-By contrast, they account for nearly half the overhead on the browser workload.
+There has been a significant effort from computer architecture researchers towards addressing Spectre V1~\cite{barber:specshield, weisse:nda, ainsworth:muontrap,yu:stt,yu:sdo}, but interestingly software mitigations for the attack had no measurable impact on LEBench performance.
+By contrast, they account for around half the overhead on the browser workload.
 
 It is also worth pointing out that all three attacks with significant overhead on new processor are actually quite ``old''.
 Spectre V1 and Spectre V2 were the first transient execution attacks discovered (along with Meltdown, which was discovered at the same time), while Speculative Store Bypass followed only a matter of months later.

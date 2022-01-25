@@ -22,25 +22,28 @@
 
 Transient execution mitigations harm kernel performance in two
 ways. First, they place overhead on code execution by disabling
-speculation.  For example, the Linux Kernel uses a retpoline patch to
-mitigate Spectre V2, which replaces each indirect branch with a
+speculation, like how the Linux Kernel uses retpolines to
+mitigate Spectre V2. That involves replacing each indirect branch in the kernel with a
 sequence of instructions that prevent the CPU from performing branch
-target speculation~\cite{intel:retpoline}. Second, these mitigations
+target speculation~\cite{intel:retpoline}. Second, mitigations
 increase the privilege mode switching cost incurred during each system
 call: upon entry into the kernel, they either flush microarchitectural
 state or reconfigure protection mechanisms.  For example,
 KPTI~\cite{gruss:kaiser,linux:kpti} switches to a separate page table
 before executing kernel code to prevent Meltdown
-attacks~\cite{lipp:meltdown}.  Workloads
+attacks~\cite{lipp:meltdown}.  As described before, workloads
 that are system call intensive (e.g., web servers, version control
-systems, etc.) are impacted by this type of overhead, while non-kernel
-intensive workloads see little performance impact~\cite{gruss:kaiser}.
+systems, etc.) are impacted by this type of overhead, while compute-intensive
+workloads see little performance impact.
 
 Collectively, these and other mitigations can result in large
-slowdowns. To better understand this problem, we run
-\bench~\cite{lebench}, a microbenchmark suite of system calls
+slowdowns. 
+To better understand this problem, we revisit the 
+\bench~\cite{lebench} microbenchmark suite from earlier which
+consists of system calls
 that impact application
-performance the most.  We evaluate the Linux kernel (version 5.6.13),
+performance the most, this time examining individual system calls instead of only the geometric mean over all of them.
+We evaluate the Linux kernel (version 5.6.13),
 comparing two configurations: one where all mitigations are disabled
 and one where all are enabled. Figure~\ref{fig:linuxslowdown} shows
 the relative slowdown between the two configurations for 13 kernel
@@ -51,9 +54,7 @@ and the newer Cascade Lake.  On the older Broadwell CPUs,
 system calls that perform the least kernel work are impacted the most
 (e.g., \texttt{getpid()}), but a wide range of operations are impacted
 significantly (25\%-100\% slowdowns). These observations are similar
-to those made by Ren et. al.; they find that KPTI and Spectre V2
-mitigations are the root cause of slowdowns in the Linux
-Kernel over the last two years~\cite{lebench}.
+to what we saw in Section \ref{sec:benchmarks:lebench} and to the observations made by Ren et. al.~\cite{lebench}.
 
 % The newer Cascade Lake CPUs exhibit lower relative overheads, partly
 % because the processors include hardware mitigations for some of the
