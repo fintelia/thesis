@@ -40,7 +40,7 @@ if (index < array_size) {
 \end{figure}
 Spectre V1 was one of the earliest attacks discovered and leaks information between different processes, between a process and the operating system kernel, or between a sandbox and the code running within.
 The attack relies on a specific sequence of instructions (a ``gadget'') to be located in the victim's code region.
-The gadget consists of a bounds check followed by two array accesses as shown in Figure~\ref{fig:spectre-code}, for which the index value can be controlled by the adversary.
+The gadget consists of a bounds check followed by two array accesses as shown in \autoref{fig:spectre-code}, for which the index value can be controlled by the adversary.
 
 To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes.
 This trains the CPU branch predictor that the branch is usually taken.
@@ -64,8 +64,16 @@ There are a whole range of other transient execution attacks, which can be divid
 \end{itemize}
 
 \subsection{Attack Model}
+
 To understand the wide range of attacks, it is useful to have a framework to describe them all.
 Based on the framework from Kiriansky, et al.~\cite{kiriansky:dawg} we can give a unifying definition: a transient execution attack involves an attacker and victim application co-located on the same physical machine in which the attacker (i) guides speculative control flow to cause, (ii) an access to a victim secret, (iii) that is transmitted via a microarchitural covert channel, (iv) to a receiver running in the attacker's protection domain. 
+These steps are depicted in \autoref{fig:attack-steps}.
+
+\begin{figure*}[h]
+    \includegraphics[width=\columnwidth]{AttackSteps.pdf}
+    \caption{Steps involved in a transient execution attack.}
+    \label{fig:attack-steps}
+\end{figure*}
 
 In Spectre V1, the attacker (i) poisons the branch predictor, (ii) which causes an out of bounds load to pull the victim secret into a register, (iii) whose value determines which cache line is loaded by a second memory operation, (iv) so that they can later learn the secret based on which entries are present in the cache.
 However, exactly how each step is conducted varies between attacks.
@@ -140,7 +148,7 @@ selective kernel memory mapping to avoid some of the costly transient execution
 mitigations required on older Intel processors.
 
 \section{Outline}
-The following chapter presents an end-to-end performance evaluation (\S\ref{s:benchmarks}), and then goes into detail on each major attack describing both background on how it works as well as analyzing its impact on each evaluated system (\S\ref{s:evolution-eval}).
-We then proceed to introduce the Unmapped Speculation Contract (\S\ref{s:ward-approach}), which encapsulates some security guarantees that we believe even old/vulnerable processors are able to provide, and describe the \sys kernel design that is able to leverage it to improve the performance of OS intensive workloads (\S\ref{s:design}).
-Afterwards is an overview of related work (\S\ref{s:related}).
-We follow up with some discussion and ideas for future work (\S\ref{s:discussion}), and then conclude (\S\ref{s:concl}).
+The following chapter presents an end-to-end performance evaluation (\autoref{s:benchmarks}), and then goes into detail on each major attack describing both background on how it works as well as analyzing its impact on each evaluated system (\autoref{s:evolution-eval}).
+We then proceed to introduce the Unmapped Speculation Contract (\autoref{s:ward-approach}), which encapsulates some security guarantees that we believe even old/vulnerable processors are able to provide, and describe the \sys kernel design that is able to leverage it to improve the performance of OS intensive workloads (\autoref{s:design}).
+Afterwards is an overview of related work (\autoref{s:related}).
+We follow up with some discussion and ideas for future work (\autoref{s:discussion}), and then conclude (\autoref{s:concl}).
