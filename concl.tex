@@ -26,7 +26,7 @@ detected by hardware to trigger special handling.
 The \sys design
 shows how \contract can be used to reduce the performance costs of
 mitigations on system calls using per-process Q domains and global K
-domains.  \sys transparently switches from Q- to K-domain through page
+domains.  \sys transparently switches from Q to K domain through page
 faults, uses temporary mappings to access unmapped physical pages, and
 splits data structures into public and private parts.  An evaluation
 shows that \sys can run the microbenchmarks of \bench with small

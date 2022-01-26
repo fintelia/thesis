@@ -3,11 +3,11 @@ Side channel attacks leak information between protection domains outside of the 
 In late 2017 a new class of side channel attacks was discovered impacting CPUs from all major vendors~\cite{lipp:meltdown, kocher:spectre}.
 These attacks---termed transient execution attacks---exploit details of how modern processors use speculative execution to run more quickly. 
 
-Transient execution attacks represent a concern for software developers because providing protection is a key security responsibility for many kinds of software.
+Transient execution attacks represent a concern for software developers because providing isolation is a key security responsibility for many kinds of software.
 For instance, an operating system must not allow processes running on the same machine to inadvertently leak information between one another, and web browsers must ensure that JavaScript running on one website cannot access state belonging to other sites.
-Software vendors have deployed a range of techniques devised to mitigate the impact of these transient execution attacks, but unfortunately they can introduce significant performance trade offs.
+Software vendors have deployed a range of techniques devised to mitigate the impact of these transient execution attacks, but unfortunately they can introduce significant performance trade-offs.
 
-The overhead caused by these mitigations is present on vulnerable processors dating from before the discovery of the attacks and also at least to some degree on all major commercial CPUs released after their discovery.
+The overhead caused by mitigations is present on vulnerable processors dating from before the discovery of the attacks and also at least to some degree on all major commercial CPUs released after their discovery.
 This thesis both attempts to quantify how this overhead has evolved over subsequent generations of processors, and since processors from 2017 and earlier will remain in use for years to come, presents an operating system design to reduce OS level overheads those CPUs.
 
 % Many hundreds of millions of vulnerable computer processors are currently in use, so simply replacing them all isn’t by itself a viable solution.
@@ -47,7 +47,7 @@ This trains the CPU branch predictor that the branch is usually taken.
 Then, the attackers forces the array size to be evicted from the CPU cache and calls the gadget with an out of bounds index.
 
 When execution reaches the bounds check, the processor will initiate a load to read the array size.
-However before that load completes, the CPU will speculatively start executing the body of the if statement because the branch predictor has previously learned that the index is usually in bounds.
+However before that load completes, the it will speculatively start executing the body of the if statement because the branch predictor has previously learned that the index is usually in bounds.
 Because the index is out of bounds, the first array access will read past the end of the array into arbitrary memory and pull that value into a CPU register.
 The second array access then loads a specific cache line whose index will depend on the first read.
 
@@ -59,7 +59,7 @@ Refer to the Project Zero article~\cite{project-zero:spectre} and paper appendix
 There are a whole range of other transient execution attacks, which can be divided into three broad categories~\cite{hill:survey}:
 \begin{itemize}
 \item \textbf{Spectre type} attacks like the one described above rely on processor misprediction to incompletely roll back executed instructions.
-\item \textbf{Meltdown type} attacks achieve the same effect using a trapping operation to trigger the roll back.
+\item \textbf{Meltdown type} attacks achieve the same effect using a trapping instruction to trigger the roll back.
 \item \textbf{Microarchitural Data Sampling (MDS) type} attacks exploit the processor's forwarding logic to cause the processor to erroneously run instructions with data fed from a sibling hyperthread or previously running task, rather than the correct values.
 \end{itemize}
 
@@ -80,7 +80,7 @@ However, exactly how each step is conducted varies between attacks.
 For instance, there are many prediction structures within a modern CPU can be leveraged to reroute speculative control flow, and the access in (ii) can be performed via a gadget in victim application or entirely using instructions located within the attacker application.
 The final receive step also frequently requires some degree of decoding the observed value to recover the original secret.
 
-Transient execution attacks are possible in setting with code running for two mutually distrusting entities on the same CPU.
+Transient execution attacks are possible in settings with code running for two mutually distrusting entities on the same CPU.
 This can be a user application attacking the OS, a user application targeting other user applications, a guest OS exploiting the hypervisor, and so forth.
 
 % \section{Mitigation Approaches}
@@ -108,32 +108,32 @@ One goal of this thesis is to gain a more detailed understanding compared to pri
 We start with end-to-end benchmarks to identify which mitigations are relevant to performance.
 In selecting workloads, we direct our attention primarily towards security boundaries.
 This is because transient execution attacks in one way or another involve leaking information across a boundary and most of the mitigations to prevent them involve performing extra work each time execution crosses a boundary. 
-Each selected workload stresses a different boundary: we use LEBench to measure the OS boundary, Octane 2 to profile JavaScript sandbox overhead, run a couple virtual machine benchmarks, and verify that there isn't significant overhead for a few CPU intensive workloads running entirely within a single process.
+Each selected workload stresses a different boundary: we use LEBench~\cite{ren:lebench} to measure the OS boundary, Octane 2~\cite{google:octane2} to profile JavaScript sandbox overhead, run a couple virtual machine benchmarks, and verify that there isn't significant overhead for a few CPU intensive workloads running entirely within a single process.
 
 By varying which mitigations are enabled during each experiment run, we're able to attribute overheads back to the specific mitigations that cause them.
 Our test systems vary on many dimensions unrelated to transient execution attacks (like core count, clock speed, and cache size) so our direct comparisons focus on relative differences between configurations of the same system.
 
 On workloads that stress the Linux kernel interface (which have received the most attention) we find there have been substantial improvements with overhead on LEBench going from over 30\% to less than 3\%, and all measured overhead now attributable to a single attack.
-By contrast, the performance of JavaScript applications running inside Firefox are impacted by an almost entirely different set of mitigations, which on the Octane 2 JavaScript benchmark has caused overhead to remain roughly flat at 20\%.
+By contrast, the performance of JavaScript applications running inside Firefox are impacted by an almost entirely different set of mitigations, which on Octane 2 has caused overhead to remain roughly flat at 20\%.
 
 We also conduct a detailed breakdown of individual mitigation code sequences to investigate their precise cycle costs.
 For each mitigation identified by the end-to-end benchmarks, we attempt to measure execution time of the associated instruction or instruction sequence on each of our impacted systems.
-Our experiments show meaningful variations between processors in how long individual mitigations take, and demonstrate that some of the most costly are completed avoided on the newest CPUs. 
-The outcome of this investigation explains why overheads to prevent transient execution attacks have significantly declined for some workloads: the overhead of the different software mitigations haven't changed much but the improvements are explained by hardware changes that removed the need for a few of the most expensive mitigations.
+Our experiments show some variations between processors in how long individual mitigations take, but demonstrate that the main source of improvement is that some costly mitigations are completed avoided on newer CPUs. 
+%The outcome of this investigation explains why overheads to prevent transient execution attacks have significantly declined for some workloads: the overhead of the different software mitigations haven't changed much but the improvements are explained by hardware changes that removed the need for a few of the most expensive mitigations.
 
 \section{Ward}
-Many processors designed prior to the discovery of transient execution attacks require expensive operating system level software mitigations.
+Many processors designed prior to the discovery of transient execution attacks continue to require expensive operating system level software mitigations.
 These CPUs will remain in use for years to come, so they cannot simply be ignored.
 %\sys is an operating system architecture designed for such processors.
 %It achieves similar security guarantees to traditional OSes equiped with software mitigations but incurs substantially lower overhead.
 \sys is a novel operating system architecture that is resilient to transient execution attacks, yet avoids much of the overhead caused by software mitigations when running on these older processors.
 
 In \sys, the operating system kernel is divided into multiple domains.
-The K-domain includes all information accessible to the operation system, while each process has its own associated Q-domain consisting only of the userspace memory and kernel space data structures related to that one process.
-At any given point in time the processor is either executing in userspace, in a Q-domain, or in the K-domain. 
+The K domain includes all information accessible to the operation system, while each process has its own associated Q domain consisting only of the userspace memory and kernel space data structures related to that one process.
+At any given point in time the processor is either executing in userspace, in a Q domain, or in the K domain. 
 
-Notably when executing in a Q-domain, \sys is able to avoid many of the expensive software mitigations that would ordinarily be required by a conventional OS when running in kernel mode on processors vulnerable to Spectre and Meltdown.
-And since \sys is able to handle many system calls and traps entirely in the Q-domain, it can achieve considerably better performance on many workloads compared to conventional operating system designs.
+Notably when executing in a Q domain, \sys is able to avoid many of the expensive software mitigations that would ordinarily be required.
+And since \sys is able to handle many system calls and traps entirely in the Q domain, it can achieve considerably better performance on many workloads compared to conventional operating system designs.
 
 \section{Contributions}
 
@@ -143,7 +143,7 @@ One primary contribution of this thesis is to draw attention to the performance 
 To analyze hardware mitigations for Spectre V2, this thesis also contributes a new technique to measure speculation using ideas from Bölük~\cite{speculating-x86}.
 
 Another contribution is articulating the Unmapped Speculation Contract, which describes upper limits of what speculative execution attacks can and cannot do.
-This thesis then demonstrates the benefits of the unmapped speculation contract
+This thesis then demonstrates the benefits of the contract
 by presenting \sys{}, a novel kernel architecture that uses
 selective kernel memory mapping to avoid some of the costly transient execution
 mitigations required on older Intel processors.
