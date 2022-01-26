@@ -1,12 +1,5 @@
 \section{Goals}
 
-\sys's goal is to reduce the performance cost of mitigations for transient
-execution attacks.  In principle, \sys's techniques can reduce not only
-the cost of software mitigations, but also allow processor designers
-to avoid mitigations in hardware.  Practically, however, \sys 
-is most applicable to older Intel processors, which incur the largest
-costs on OS-level mitigations.
-
 % This chapter focuses on reducing the overhead of software mitigations, 
 % and experimentally measures their effect on the
 % previous generations of CPUs predating the discovery , where we can avoid mitigations altogether.
@@ -53,6 +46,13 @@ make sure that sensitive data is flushed from microarchitectural state,
 such as flushing CPU caches and buffers when returning from a system
 call or when context-switching between processes.  Both incur significant
 performance overheads.
+
+\sys's goal is to reduce the performance cost of mitigations for transient
+execution attacks.  In principle, \sys's techniques can reduce not only
+the cost of software mitigations, but also allow processor designers
+to avoid mitigations in hardware.  Practically, however, \sys 
+is most applicable to older Intel processors, which incur the largest
+costs on OS-level mitigations.
 
 Transient execution attacks can leak data across many protection domain
 boundaries, including leaking secrets from the kernel to an adversary's

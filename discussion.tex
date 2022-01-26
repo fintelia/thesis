@@ -1,10 +1,10 @@
 \label{s:discussion}
-The ongoing impact to performance of transient execution attacks is continuing to decline, and on some workloads isn't even measurable at all.
-Watching the stream of new transient execution attacks being published might not give this impression, but that comes from mistakenly looking at the quantity of attacks independent of their performance drain.
+The ongoing impact to performance of transient execution attacks is continuing to decline on newer processors, and on some workloads isn't even measurable at all.
+Watching the stream of new transient execution attacks being published might not give this impression, but that comes from looking at the quantity of attacks independent of their performance drain.
 
-One aspect in particular that that gets overlooked is that production operating systems don't try to provide perfect isolation in the first place.
+One aspect in particular that is easily overlooked is that production operating systems don't try to provide perfect isolation in the first place.
 This is a challenge for the security community because it is much harder to model, but a tremendous opportunity to the systems community that can ignore low severity side channels (or accept incomplete fixes for more severe ones).
-It means that an intervention proposed to mitigate a specific side channel attack by its creator might be deemed excessive by the software community.
+It means that a proposed method by a security researcher to mitigate a specific side channel attack might be deemed excessive by the developer community.
 
 One example is disabling hyperthreading.
 While theoretically necessary to mitigate certain attacks, Linux by default choses to just ignore that advice and run mutually untrusting processes on adjacent hyperthreads.
@@ -13,15 +13,14 @@ Instead Linux developers just annotate all the specific code sequences they can 
 From a theoretical sense this is deeply unsatisfying since there are almost surely places that have been missed.
 However, the constant stream of memory safety and logic bugs being discovered in the kernel makes any comparatively difficult to exploit Spectre vulnerabilities of limited concern.
 
-At the other end of the spectrum, critical applications can achieve much higher guarantees of isolation by running on dedicated hardware because transient execution attacks only work if the attacker and victim are sharing the same physical machine.
-This makes them immune even to attack variants that haven't been discovered yet, but naturally comes with its own tradeoffs.
+If strong security against transient execution attacks is needed, critical applications can achieve much higher guarantees of isolation by running on dedicated hardware because transient execution attacks only work if the attacker and victim are sharing the same physical machine.
+This makes them immune even to attack variants that haven't been discovered yet, but naturally comes with its own downsides.
 The combination of added cost, reduced utilization, or degraded usability mean that this approach is usually reserved only for applications that absolutely require it.
 
 It is also worth considering performance impacts in context.
 The Zen 3 processor we experimented with might look like it has the worst overhead from Speculative Store Bypass Disable, but that is only on relative terms.
 In fact, it is so much faster than any of the other machines we tested on the benchmarks, to the point that with SSBD enabled it outperformed all the other processors when they had SSBD disabled.
 That partly comes down to clock speed, but also the generational improvement in CPUs, which almost invariably exceeds the at this point roughly 3\% overhead that OS-level mitigations cause to syscall workloads.
-It is hardly worth closing that gap if it would come at cost of potentially losing out on improvements that could speed up all workloads.
 
 With the context discussed so far, the major area most applicable for future work is JavaScript isolation.
 Across all the processors we studied, overheads from mitigations have been high and unchanging across processor generations.
@@ -32,5 +31,5 @@ The second facet of possible future work is addressing Spectre V1 from sandboxed
 JIT compilers can readily insert appropriate bounds check instructions and speculation barriers to prevent the common variants of the attack.
 However, existing processors are not tuned to accelerate these code patterns, so the cumulative impact of running them thousands or millions of times can have a detrimental impact on performance.
 This doesn't need to be the case.
-The computer architecture community has already studied ways for a CPU to perform memory operations without introducing Spectre gadgets.
-Those techniques are painfully slow when applied to every memory operation in a program, but could be far more reasonable when applied only to memory instructions flagged by the JIT.
+The computer architecture community has already studied ways for a CPU to perform memory operations without introducing Spectre gadgets~\cite{ainsworth:muontrap,yu:stt,yu:sdo}.
+Those techniques can be painfully slow when applied to every memory operation in a program, but could be far more reasonable when applied only to memory instructions flagged by the JIT.

@@ -3,12 +3,12 @@ Side channel attacks leak information between protection domains outside of the 
 In late 2017 a new class of side channel attacks was discovered impacting CPUs from all major vendors~\cite{lipp:meltdown, kocher:spectre}.
 These attacks---termed transient execution attacks---exploit details of how modern processors use speculative execution to run more quickly. 
 
-Transient execution attacks represent a concern for software developers because providing isolation is a key security responsibility for many kinds of software.
+Transient execution attacks represent a concern for system developers because providing isolation is a key security responsibility for many kinds of software.
 For instance, an operating system must not allow processes running on the same machine to inadvertently leak information between one another, and web browsers must ensure that JavaScript running on one website cannot access state belonging to other sites.
-Software vendors have deployed a range of techniques devised to mitigate the impact of these transient execution attacks, but unfortunately they can introduce significant performance trade-offs.
+System developers have deployed a range of techniques devised to mitigate the impact of these transient execution attacks, but unfortunately they can introduce significant performance costs.
 
 The overhead caused by mitigations is present on vulnerable processors dating from before the discovery of the attacks and also at least to some degree on all major commercial CPUs released after their discovery.
-This thesis both attempts to quantify how this overhead has evolved over subsequent generations of processors, and since processors from 2017 and earlier will remain in use for years to come, presents an operating system design to reduce OS level overheads those CPUs.
+This thesis (i) measures how overhead has evolved over subsequent generations of processors, and (ii) since processors from 2017 and earlier will remain in use for years to come, presents a new operating system design to reduce OS level overheads those CPUs.
 
 % Many hundreds of millions of vulnerable computer processors are currently in use, so simply replacing them all isn’t by itself a viable solution.
 % Worse still, computer architectural approaches to solve transient execution attacks remains an open area of research, except on the simplest of processors.
@@ -24,7 +24,7 @@ The prediction is based on prior executions of that same instructions and any ot
 
 Usually the branch prediction is correct and the speculatively executed instructions can be committed.
 However, when the prediction is incorrect, the CPU rolls back the architecturally visible results of the instructions executed after the branch.
-In general when reverting transiently executed instructions, their microarchitural effects---like inserting or evicting lines from the cache---are not undone.
+However, in general when reverting transiently executed instructions, their microarchitural effects---like inserting or evicting lines from the cache---are not undone.
 Observing the  microarchitural effects of speculatively executed instructions enables transient execution attacks.
 
 \subsection{Example Attack}
@@ -39,15 +39,15 @@ if (index < array_size) {
 \label{fig:spectre-code}
 \end{figure}
 Spectre V1 was one of the earliest attacks discovered and leaks information between different processes, between a process and the operating system kernel, or between a sandbox and the code running within.
-The attack relies on a specific sequence of instructions (a ``gadget'') to be located in the victim's code region.
+The attack relies on a specific sequence of instructions called a ``gadget'' to be located in the victim's code region (e.g. in the code for a system call).
 The gadget consists of a bounds check followed by two array accesses as shown in \autoref{fig:spectre-code}, for which the index value can be controlled by the adversary.
 
-To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes.
+To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes (e.g. by invoking the system cal that has the gadget).
 This trains the CPU branch predictor that the branch is usually taken.
 Then, the attackers forces the array size to be evicted from the CPU cache and calls the gadget with an out of bounds index.
 
 When execution reaches the bounds check, the processor will initiate a load to read the array size.
-However before that load completes, the it will speculatively start executing the body of the if statement because the branch predictor has previously learned that the index is usually in bounds.
+However before that load completes, it will speculatively start executing the body of the if statement because the branch predictor has previously learned that the index is usually in bounds.
 Because the index is out of bounds, the first array access will read past the end of the array into arbitrary memory and pull that value into a CPU register.
 The second array access then loads a specific cache line whose index will depend on the first read.
 
@@ -56,7 +56,8 @@ This enables the attacker to later time how long it takes to access each cache e
 Refer to the Project Zero article~\cite{project-zero:spectre} and paper appendix~\cite{kocher:spectre} for a full attack description.
 
 \subsection{Other Attacks}
-There are a whole range of other transient execution attacks, which can be divided into three broad categories~\cite{hill:survey}:
+After the discovery of the original transient execution attacks, a wide range of others were identified.
+They can be divided into three broad categories~\cite{hill:survey}:
 \begin{itemize}
 \item \textbf{Spectre type} attacks like the one described above rely on processor misprediction to incompletely roll back executed instructions.
 \item \textbf{Meltdown type} attacks achieve the same effect using a trapping instruction to trigger the roll back.
@@ -65,8 +66,8 @@ There are a whole range of other transient execution attacks, which can be divid
 
 \subsection{Threat Model}
 
-To understand the wide range of attacks, it is useful to have a framework to describe them all.
-Based on the framework from Kiriansky, et al.~\cite{kiriansky:dawg} we can give a unifying definition: a transient execution attack involves an attacker and victim application co-located on the same physical machine in which the attacker (i) guides speculative control flow to cause, (ii) an access to a victim secret, (iii) and for it to be transmitted via a microarchitectural covert channel, (iv) to a receiver in the attacker's protection domain.
+To understand this wide range of attacks, it is useful to have a framework to describe them all.
+Based on the outline from Kiriansky, et al.~\cite{kiriansky:dawg} we can give a unifying definition: a transient execution attack involves an attacker and victim application co-located on the same physical machine in which the attacker (i) guides speculative control flow to cause, (ii) an access to a victim secret, (iii) and for it to be transmitted via a microarchitectural covert channel, (iv) to a receiver in the attacker's protection domain.
 These steps are depicted in \autoref{fig:attack-steps}.
 
 \begin{figure*}[h]
@@ -76,9 +77,9 @@ These steps are depicted in \autoref{fig:attack-steps}.
 \end{figure*}
 
 In Spectre V1 for instance, the attacker (i) poisons the branch predictor, (ii) which causes an out of bounds load to pull the victim secret into a register, (iii) so a second memory operation pulls in a cache line whose index is determined by the secret, (iv) so that the attacker can recover the secret by probing which entries are present in the cache.
-However, exactly how each step is conducted varies between attacks.
-For instance, there are many prediction structures within a modern CPU can be leveraged to reroute speculative control flow, and the access in (ii) can be performed via a gadget in victim application or entirely using instructions located within the attacker application.
-The final receive step also frequently requires some degree of decoding the observed value to recover the original secret.
+Exactly how each step is conducted varies between attacks.
+For instance, there are many prediction structures within a modern CPU that can be leveraged to reroute speculative control flow, and the access in (ii) can be performed via a gadget in the victim application or entirely using instructions located within the attacker application.
+The final receive step is typically noisy and requires some degree of decoding of the observed value to recover the original secret.
 
 Transient execution attacks are possible in settings with code running for two mutually distrusting entities on the same CPU.
 This can be a user application attacking the OS, a user application targeting other user applications, a guest OS exploiting the hypervisor, and so forth.
@@ -101,20 +102,22 @@ This can be a user application attacking the OS, a user application targeting ot
 % For other attacks, performant hardware mitigations remain an active area of research~\cite{OISA, ConTExT}.
 
 \section{Evolution of Mitigation Cost}
-Mitigations for transient execution attacks can introduce significant performance impacts as surveys by Phoronix have demonstrated~\cite{phoronix:perf-zombieload, phoronix:two-years, phoronix:three-years}.
+Mitigations for transient execution attacks can introduce significant performance costs as surveys by Phoronix have demonstrated~\cite{phoronix:perf-zombieload, phoronix:two-years, phoronix:three-years}.
 %For instance, the patches to mitigate Meltdown cause system calls to be up to 8$\times$ slower, while flushing microarchitural buffers to avoid MDS can add thousands of cycles to every context switch.
 One goal of this thesis is to gain a more detailed understanding compared to prior work, including by measuring how specific mitigations impact performance.
 
 We start with end-to-end benchmarks to identify which mitigations are relevant to performance.
 In selecting workloads, we direct our attention primarily towards security boundaries.
 This is because transient execution attacks in one way or another involve leaking information across a boundary and most of the mitigations to prevent them involve performing extra work each time execution crosses a boundary. 
-Each selected workload stresses a different boundary: we use LEBench~\cite{ren:lebench} to measure the OS boundary, Octane 2~\cite{google:octane2} to profile JavaScript sandbox overhead, run a couple virtual machine benchmarks, and verify that there isn't significant overhead for a few CPU intensive workloads running entirely within a single process.
+Each selected workload stresses a different boundary: we use LEBench~\cite{ren:lebench} to measure the OS boundary, Octane 2~\cite{google:octane2} to profile JavaScript sandbox overhead, run a few virtual machine benchmarks, and verify that there isn't significant overhead for a few CPU intensive workloads running entirely within a single process.
 
 By varying which mitigations are enabled during each experiment run, we're able to attribute overheads back to the specific mitigations that cause them.
 Our test systems vary on many dimensions unrelated to transient execution attacks (like core count, clock speed, and cache size) so our direct comparisons focus on relative differences between configurations of the same system.
 
 On workloads that stress the Linux kernel interface (which have received the most attention) we find there have been substantial improvements with overhead on LEBench going from over 30\% to less than 3\%, and all measured overhead now attributable to a single attack.
 By contrast, the performance of JavaScript applications running inside Firefox are impacted by an almost entirely different set of mitigations, which on Octane 2 has caused overhead to remain roughly flat at 20\%.
+
+%One concern is that the cost of mitigations has moved into hardware and that newer processors execute that overhead 
 
 We also conduct a detailed breakdown of individual mitigation code sequences to investigate their precise cycle costs.
 For each mitigation identified by the end-to-end benchmarks, we attempt to measure execution time of the associated instruction or instruction sequence on each of our impacted systems.
@@ -149,7 +152,7 @@ selective kernel memory mapping to avoid some of the costly transient execution
 mitigations required on older Intel processors.
 
 \section{Outline}
-The following chapter presents an end-to-end performance evaluation (\autoref{s:benchmarks}), and then goes into detail on each major attack describing both background on how it works as well as analyzing its impact on each evaluated system (\autoref{s:evolution-eval}).
-We then proceed to introduce the Unmapped Speculation Contract (\autoref{s:ward-approach}), which encapsulates some security guarantees that we believe even old/vulnerable processors are able to provide, and describe the \sys kernel design that is able to leverage it to improve the performance of OS intensive workloads (\autoref{s:design}).
+The following chapter presents an end-to-end performance evaluation and goes into detail on each major attack describing both background on how it works as well as analyzing its impact on each evaluated system (\autoref{ch:evolution}).
+We then proceed to introduce the Unmapped Speculation Contract, which encapsulates some security guarantees that we believe even old processors are able to provide, and describe the \sys kernel design which improves the performance of OS intensive workloads by leveraging it (\autoref{ch:ward}).
 Afterwards is an overview of related work (\autoref{s:related}).
 We follow up with some discussion and ideas for future work (\autoref{s:discussion}), and then conclude (\autoref{s:concl}).

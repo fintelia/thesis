@@ -1,13 +1,12 @@
 %\section{Conclusion}
 \label{s:concl}
 
-This thesis assesses the evolution of performance penalties for
-mitigations against transient execution side-channel attacks by
-measuring their overheads across generation of Intel and AMD
-processors, and introduces the \sys kernel design which eliminates as much
+This thesis measures the performance penalties for
+mitigations against transient execution side-channel attacks across generations of Intel and AMD
+processors, and introduces the \sys kernel design, which eliminates as much
 as half this overhead for OS heavy workloads on old processors.
 
-On post-2018 processors, overhead from OS boundary has mostly been eliminated in hardware.
+On post-2018 processors, overhead from the OS boundary has mostly been eliminated in hardware.
 This means the high mitigation costs have been largely resolved for server workloads.
 At the same time, JavaScript sandboxing is still expensive.
 Across both workloads, most overheads that remain  are caused by a small number of software mitigations, all addressing attacks that were discovered in 2018 or earlier and attacks published since require mitigations with only minor performance impact for recent processors.

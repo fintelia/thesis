@@ -4,6 +4,7 @@
 This section explores the individual mitigations that contributed
 to the previously shown end-to-end overheads.
 Our aim is to understand why some mitigation costs have declined while others have not.
+Furthermore, we also want to understand whether moving mitigations from software to hardware truly makes them faster.
 
 For each mitigation, we attempt to isolate the relevant instruction sequence and examine what the cost is on each of our processors.
 To achieve precise timings, we rely on the timestamp counter functionality available on x86 and average over one million runs to eliminate noise.
@@ -178,7 +179,7 @@ AMD processors we tested show a similar improvement across generations.
                              & Zen 3             & 808 \\ \hline
     \end{tabular}
     \end{center}
-    \caption{Cycles to execute an indirect branch speculation barrier. }
+    \caption{Cycles to execute an Indirect Branch Prediction Barrier. }
     \label{table:ibpb}
 \end{table}
 

@@ -119,7 +119,7 @@ Given the difficulty of exploiting Speculative Store Bypass and the considerable
 
 \subsection{Microarchitectural Data Sampling (MDS)}
 Microarchitectural Data Sampling describes class of attacks involving leaks from various microarchitectural buffers within the CPU~\cite{canella:fallout, schwarz:zombieload,schaik:ridl}.
-Unlike other Spectre and Meltdown variants, MDS attacks cannot be targeted to specific victim addresses which makes them more challenging to exploit.
+Unlike other Spectre and Meltdown variants, MDS attacks cannot be targeted to specific victim addresses, which makes them more challenging to exploit.
 
 From an attacker perspective there are many different variations of MDS with their own specific mechanisms and capabilities.
 However, mitigations all fall into two categories: specific microarchitectural buffers need to be cleared on every privilege domain crossing or hyperthreading must be disabled to prevent an attacker and victim from simultaneously running on the same physical core.
