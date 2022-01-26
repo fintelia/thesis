@@ -2,22 +2,25 @@
 \singlespace
 \begin{center}
 
-{\large \bf Performance Implications of Mitigating Transient Execution Side Channel Attacks} \\[.5\baselineskip]
+{\large \bf Understanding and Improving the Performance of Mitigating Transient Execution Attacks} \\[.5\baselineskip]
 by \\
 Jonathan Behrens \\[.5\baselineskip]
 \end{center}
 
-Submitted to the Department of Electrical Engineering and Computer Science on January 7, 2022 in Partial Fullfillment of the Requirements for the Degree of Doctor of Philosophy in Electrical Engineering and Computer Science.\\[.5\baselineskip]
+Submitted to the Department of Electrical Engineering and Computer Science on January 26, 2022 in Partial Fullfillment of the Requirements for the Degree of Doctor of Philosophy in Electrical Engineering and Computer Science.\\[.5\baselineskip]
 
 \noindent
 ABSTRACT \\
 
-This thesis quantifies how the performance overhead of mitigating transient execution attacks has evolved over subsequent generations of processors and presents an operating system design to reduce OS-level overheads on the processors where they are most severe.  
+This thesis assesses the performance evolution of mitigations against transient execution side channel attacks, and introduces the \sys kernel design which eliminates as much as half this overhead on older processors.
 
-On workloads that stress the Linux kernel interface (which have received the most attention) there have been substantial improvements with slowdowns on the LEBench benchmark suite going from over 30\% to less than 3\%.
-By contrast, the overhead for JavaScript applications running inside Firefox are impacted by an almost entirely different set of mitigations which haven't gotten better with newer processors.
+A survey mapping end-to-end overheads to the specific mitigations that cause them reveals that hardware fixes for a couple specific transient execution attacks have reduced overheads on OS heavy workloads by a factor of ten.
+However, overheads for JavaScript applications have remained roughly flat because they are caused by mitigations for attacks which even the most recent processors are still vulnerable to.
 
-\sys is a novel operating system architecture which is resilient to transient execution attacks, yet avoids many of the expensive software mitigations that existing operating systems employ when running on older processors. 
+% On workloads that stress the Linux kernel interface (which have received the most attention) there have been substantial improvements with slowdowns on the LEBench benchmark suite going from over 30\% to less than 3\%.
+% By contrast, the overhead for JavaScript applications running inside Firefox are impacted by an almost entirely different set of mitigations which haven't gotten better with newer processors.
+
+\sys is a novel operating system architecture which is resilient to transient execution attacks, yet avoids many of the expensive software mitigations that existing operating systems employ when running on pre-2018 processors. 
 It achieves considerably better performance on many workloads compared to conventional operating system designs.
 
 ~\\[\baselineskip]
