@@ -4,8 +4,8 @@
 For nearly all the attacks we've looked at so far, either the mitigation approach has remained the same across all the processor generations we've studied, or it has gone from an expensive software mitigation to a hardware fix with no measurable cost at all.
 Spectre V2 notably does not follow this trajectory.
 It has a multitude of hardware and software mitigations, yet remains a non-trivial expense on every CPU we've tested.
-In this section we attempt to understand under which conditions the
-Branch Target Buffer is used to speculatively execute instructions and when not.
+In this section we attempt to understand the attack better by determining under which conditions the
+Branch Target Buffer is used to speculatively execute instructions and when it is not.
 
 \begin{figure}[!ht]
 \begin{lstlisting}
@@ -148,7 +148,7 @@ We suspect this isn't because it is immune to the attack, but rather due to some
 
 Recall that the original version of Indirect Branch Restricted Speculation (IBRS) was the first mitigation proposed for Spectre V2 but is not used by default on any production operating system because it requires an expensive write to a model-specific register on every entry into the kernel.
 
-According to Intel documentation, this mitigation prevents indirect branches executed from less privileged modes from impacting the predicted destination of indirect branches in more privileged modes.
+According to Intel documentation~\cite{intel:ibrs-ssbd}, this mitigation prevents indirect branches executed from less privileged modes from impacting the predicted destination of indirect branches in more privileged modes.
 We experimentally validated this claim by poisoning the branch target buffer and then seeing whether the processor would speculatively jump to the programmed branch destination.
 Our measurements indicated that toggling this mitigation caused the
 user space code to be unable to redirect kernel execution.
@@ -181,7 +181,7 @@ Monitoring performance counters reveal that slow system calls involve both execu
 The original IBRS design not only added substantial overhead to every kernel entry, it also blocked indirect branch speculation everywhere.
 eIBRS improves on this by seemingly partitioning or tagging the branch target buffer based on the CPU privilege mode.
 
-Partitioning / tagging the branch target buffer however is not a complete mitigation for Spectre V2.
+Partitioning or tagging the branch target buffer however is not a complete mitigation for Spectre V2.
 User processes still need their own defenses and even within the kernel indirect branches executed by the operating system could be used to mistrain the branch target buffer to misdirect subsequent operating system indirect branches.
 
 We suspect that the designers of eIBRS may have been aware of this risk and taken precautions against it.

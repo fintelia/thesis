@@ -1,21 +1,21 @@
 \section{Performance of Individual Mitigations}
 \label{s:evolution-eval}
 
-This section explores in more detail the individual mitigations that contributed
+This section explores the individual mitigations that contributed
 to the previously shown end-to-end overheads.
-Our aim is to understand why some mitigation costs have gone down while others have not.
+Our aim is to understand why some mitigation costs have declined while others have not.
 
 For each mitigation, we attempt to isolate the relevant instruction sequence and examine what the cost is on each of our processors.
 To achieve precise timings, we rely on the timestamp counter functionality available on x86 and average over one million runs to eliminate noise.
 
 \subsection{Meltdown}
 
-On LEBench, the Meltdown mitigation accounts for one of the most substantial performance impacts, singlehandedly causing an around 10\% overhead on its own.
+Meltdown mitigations account for one of the most substantial performance impacts on LEBench, singlehandedly causing an around 10\% overhead.
 On processors vulnerable to Meltdown, production operating systems use page table isolation (PTI) to mitigate it.
-This approach adds significant overhead to every user-kernel boundary crossing, because it requires switching the page tables every time via a \texttt{mov} to the \texttt{\%cr3} register.
+This approach adds significant overhead to every user-kernel boundary crossing, because it requires switching the page tables every time via a \texttt{mov \%cr3} instruction.
 Among the systems we evaulated, only Broadwell and Skylake are vulnerable to Meltdown.
 
-As seen in \autoref{table:meltdown}, on processors vulnerable to Meltdown the cycles required to swap page tables when entering and again on leaving the kernel far exceeds the time for the actual \texttt{syscall} or \texttt{sysret} instruction that triggers the entry/exit.
+As seen in \autoref{table:meltdown}, on these processors the cycles required to swap page tables when entering and again on leaving the kernel far exceeds the time for the actual \texttt{syscall} or \texttt{sysret} instruction that triggers the entry/exit.
 For syscalls, the Ice Lake Client CPU takes fewer cycles (which will prove a pattern---likely due to its lower base clock speed) and the Cascade Lake model stands out by taking longer than both earlier and later Intel models.
 
 \begin{table}[h]
@@ -38,7 +38,7 @@ For syscalls, the Ice Lake Client CPU takes fewer cycles (which will prove a pat
 
 One other impact of page table isolation is that on old processors it can cause increased TLB pressure due to much more frequent TLB flushes.
 Both Broadwell and Skylake Client, however, support PCIDs which tag page table entries with a process identifier.
-This means that on those processors the TLB has to be flushed much less often, and makes TLB impacts marginal compared to the direct cost switching the root page table pointer.
+This allow many TLB flushes to be avoided, and makes TLB impacts marginal compared to the direct cost of switching the root page table pointer.
 
 \subsection{Microarchitectural Data Sampling}
 
@@ -80,9 +80,9 @@ As we saw, mitigating Spectre V2 is a small but largely consistent drag on LEBen
 \paragraph{Indirect Branch Restricted Speculation}
 
 Indirect Branch Restricted Speculation (IBRS) was the first mitigated proposed for Spectre V2 and is enabled by setting a MSR bit which must be repeated on every entry into the kernel.
-Newer Intel processors---Cascade Lake and onward---support extended IBRS (eIBRS), which allows the operating system to enable IBRS once at boot time, and have it remain in effect without additional system register writes.
+Newer Intel processors---Cascade Lake and onward---support enhanced IBRS (eIBRS), which allows the operating system to enable IBRS once at boot time, and have it remain in effect without additional system register writes.
 
-The cycle cost of doing this MSR write on every system call was viewed as unacceptably high, so production operating systems investigated alternative approaches, ultimately settling on retpolines for any processor not supporting eIBRS.
+The cycle cost of doing this MSR write on every system call was viewed as unacceptably high~\cite{linus:ibrs-rant}, so production operating systems investigated alternative approaches, ultimately settling on retpolines for any processor not supporting eIBRS.
 
 \paragraph{Retpoline}
 
@@ -264,14 +264,14 @@ strategy: before every array indexing operation it inserts a
 \texttt{cmov} instruction that overwrites the array index with zero if it would be past the end of the array.
 Unlike in many compiled languages, JavaScript always knows the lengths of arrays so this mitigation can be applied automatically to the generated assembly.
 On the committed execution path the conditional move will always be a no-op (because as a safe language JavaScript always does bounds checks), but in the speculative case it blocks execution until the array length has resolved.
-Our measurements of the Octane 2 benchmark suite indicate this approach incurs an approximately 4\% performance overhead.
+Our measurements of the Octane 2 benchmark suite indicate this approach incurs a roughly 4\% performance overhead on most of the systems.
 
 \paragraph{Object Mitigations}
 
 Since JavaScript is dynamically typed, the compiler must insert many runtime checks on the types of variables.
 This presents another possible avenue for Spectre V1 attacks, because mis-speculating an object's type can cause its fields to be misinterpreted, potentially resulting in out of bounds memory reads.
-The mitigation is similar to index masking: object guards insert a conditional move that zeros out the object pointer if the check check fails.
-This mitigation incurs an overhead on Octane 2 on the order of 6\%.
+The mitigation is similar to index masking: object guards insert a conditional move that zeros out the object pointer if the check fails.
+This mitigation incurs an overhead on Octane 2 on the order of 6\% on the tested processors.
 
 \subsection{Speculative Store Bypass}
 \label{sec:ssb}
@@ -282,7 +282,7 @@ This mitigation incurs an overhead on Octane 2 on the order of 6\%.
   \label{fig:ssbd}
 \end{figure}
 
-Speculative Store Bypass, originally called Spectre V4, exploits the processor's store-to-load forwarding to enable an attacker to learn the contents of recently written memory locations.
+Speculative Store Bypass exploits the processor's store-to-load forwarding to enable an attacker to learn the contents of recently written memory locations.
 The only available defense against the attack is to enable a processor mode called Speculative Store Bypass Disable (SSBD) that blocks this forwarding.
 A downside is that this can come at substantial cost, even when normal non-malicious code is being run.
 
@@ -300,12 +300,13 @@ Linux avoids ever creating such PTEs, which can be done with essentially no over
 This is consistent with it not showing up in our end-to-end performance study earlier.
 
 However, the problem is more severe when virtual machines are involved because an untrusted guest operating system could insert such specially crafted PTEs into its own page table.
-Doing so would enable it to learn L1 cache contents lingering from memory accesses done by the host, and so the necessary mitigation on vulnerable processors is for the host to flush the L1 cache prior to entering a guest virtual machine.
+Doing so would enable it to learn L1 cache contents lingering from memory accesses done by the host.
+The necessary mitigation on vulnerable processors is for the host to flush the L1 cache prior to entering a guest virtual machine.
 
 Our benchmarking of virtual machine workloads did not show any measurable impact from enabling this mitigation and it has also been patched on newer processors, so the relevance should be minimal going forward.
 
 \subsection{Other attacks}
 
 The attacks discussed so far are hardly the only transient execution attacks discovered.
-Many others like FPU Register Bypass, System Register Read, and so forth have commanded significant time and attention for computer architects, operating system developers, and security researchers.
+Many others like System Register Read, and so forth have commanded significant time and attention for computer architects, operating system developers, and security researchers.
 However, the cost they incur on workloads today seems to be minimal, so we skip evaluating them individually.
