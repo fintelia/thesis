@@ -2,7 +2,7 @@
 % Transient execution attacks are a class of side channel attacks that leak information across privilege domains using microarchitectural details of how processors are implemented.
 % Spectre and Meltdown were the first---but far from only---of these attacks to be discovered.
 
-From the end-user perspective, a significant concern from transient execution side channel attacks is the performance degradation they cause.
+From the end-user perspective, a significant concern from transient execution attacks is the performance degradation they cause.
 This is because operating systems and applications have deployed mitigations to restore their previous security guarantees, but those same mitigations make systems slower.
 This highly visible impact on user experience has been measured by Phoronix and others.
 We go further and attribute overheads to individual mitigations to understand which ones matter to overall performance.
@@ -11,7 +11,7 @@ We also study internal JavaScript runtime mitigations to understand whether the 
 In this thesis, the focus is on security boundaries because mitigations for transient execution attacks usually involve doing extra work for each boundary crossing, often in the form of flushing of microarchitural state or waiting for in-flight operations to complete.
 Each of our workloads are chosen to stress a different security boundary.
 \autoref{sec:benchmarks:lebench} measures the OS boundary, \autoref{sec:benchmarks:octane-2} the boundaries between JavaScript sandboxes, \autoref{sec:benchmarks:vm} between a guest OS and a hypervisor, and \autoref{sec:benchmarks:parsec} confirms that mitigation overheads are low in the absence of security boundaries.
-Another possible boundary would be between WASM sandboxes, but we found that other than Swivel~\cite{narayan:swivel} which is already well studied, production WASM engines seem to either rely on site isolation~\cite{reis:site-isolation} or neglect to mitigate transient execution attacks at all~\cite{cranelift:wasm-no-mitigations}.
+Another possible boundary would be between WASM sandboxes, but we found that other than Swivel~\cite{narayan:swivel}, which is already well studied, production WASM engines seem to either rely on site isolation~\cite{reis:site-isolation} or neglect to mitigate transient execution attacks at all~\cite{cranelift:wasm-no-mitigations}.
 
 Our experiments look at a range of processors including both some that predate the discovery of Spectre and Meltdown but which are still in active use, newer ones which incorporate some mitigations, and even more recent models with still more mitigations.
 We evaluate five processors from Intel and three AMD processors so we can compare across vendors as well.

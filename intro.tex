@@ -1,6 +1,6 @@
 \noindent
-Side channel attacks leak information between protection domains outside of the normal information flow of a system.
-In late 2017 a new class of side channel attacks was discovered impacting CPUs from all major vendors~\cite{lipp:meltdown, kocher:spectre}.
+Side-channel attacks leak information between protection domains outside of the normal information flow of a system.
+In late 2017 a new class of side-channel attacks was discovered impacting CPUs from all major vendors~\cite{lipp:meltdown, kocher:spectre}.
 These attacks---termed transient execution attacks---exploit details of how modern processors use speculative execution to run more quickly. 
 
 Transient execution attacks represent a concern for system developers because providing isolation is a key security responsibility for many kinds of software.
@@ -42,13 +42,13 @@ Spectre V1 was one of the earliest attacks discovered and leaks information betw
 The attack relies on a specific sequence of instructions called a ``gadget'' to be located in the victim's code region (e.g., in the code for a system call).
 The gadget consists of a bounds check followed by two array accesses as shown in \autoref{fig:spectre-code}, for which the index value can be controlled by the adversary.
 
-To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes (e.g., by invoking the system cal that has the gadget).
+To trigger the attack, the adversary will repeatedly call the gadget with in bounds indexes (e.g., by invoking the system call that has the gadget).
 This trains the CPU branch predictor that the branch is usually taken.
 Then, the attackers forces the array size to be evicted from the CPU cache and calls the gadget with an out of bounds index.
 
 When execution reaches the bounds check, the processor will initiate a load to read the array size.
 However before that load completes, it will speculatively start executing the body of the if statement because the branch predictor has previously learned that the index is usually in bounds.
-Because the index is out of bounds, the first array access will read past the end of the array into arbitrary memory and pull that value into a CPU register.
+Because the index is out of bounds, the first array access will read past the end of the array into arbitrary memory (e.g., allowing the attacker to access any part of memory) and pull the value into a CPU register.
 The second array access then loads a specific cache line whose index will depend on the first read.
 
 Eventually the branch misprediction will be discovered and rolled back, but the cache contents will not be.
@@ -81,7 +81,7 @@ Exactly how each step is conducted varies between attacks.
 For instance, there are many prediction structures within a modern CPU that can be leveraged to reroute speculative control flow, and the access in (ii) can be performed via a gadget in the victim application or entirely using instructions located within the attacker application.
 The final receive step is typically noisy and requires some degree of decoding of the observed value to recover the original secret.
 
-Transient execution attacks are possible in settings with code running for two mutually distrusting entities on the same CPU.
+Transient execution attacks are possible in settings with code running for two mutually-distrusting entities on the same CPU.
 This can be a user application attacking the OS, a user application targeting other user applications, a guest OS exploiting the hypervisor, and so forth.
 
 % \section{Mitigation Approaches}
@@ -141,7 +141,7 @@ Such processors will remain in use for years to come and cannot simply be ignore
 %\sys is an operating system architecture designed for such processors.
 %It achieves similar security guarantees to traditional OSes equiped with software mitigations but incurs substantially lower overhead.
 \sys is a novel operating system architecture that is resilient to transient execution attacks, yet avoids much of the overhead caused by software mitigations when running on these processors.
-It is based around the Unmapped Speculation Contract, which describes limits on a processor's speculative behavior.
+It is based on the Unmapped Speculation Contract, which describes limits on a processor's speculative behavior.
 
 In \sys, the operating system kernel is divided into multiple domains.
 The K domain includes all information accessible to the operation system, while each process has its own associated Q domain consisting only of the userspace memory and kernel space data structures related to that one process.

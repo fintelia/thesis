@@ -4,13 +4,13 @@ Watching the stream of new transient execution attacks being published might not
 
 One aspect in particular that is easily overlooked is that production operating systems don't try to provide perfect isolation in the first place.
 This is a challenge for the security community because it is much harder to model, but a tremendous opportunity to the systems community that can ignore low severity side channels (or accept incomplete fixes for more severe ones).
-It means that a proposed method by a security researcher to mitigate a specific side channel attack might be deemed excessive by the developer community.
+It means that a proposed method by a security researcher to mitigate a specific transient execution attack might be deemed excessive by the developer community.
 
 One example is disabling hyperthreading.
 While theoretically necessary to mitigate certain attacks, Linux by default choses to just ignore that advice and run mutually untrusting processes on adjacent hyperthreads.
 An even more pronounced case is Spectre V1: the only way to be 100\% sure that no gadgets are present is to insert speculation barriers of some sort after every single branch in the kernel, because there isn't a programmatic way to know which are vulnerable.
 Instead Linux developers just annotate all the specific code sequences they can find to prevent them from being exploited.
-From a theoretical sense this is deeply unsatisfying since there are almost surely places that have been missed.
+From a theoretical sense this is unsatisfying since there are almost surely places that have been missed.
 However, the constant stream of memory safety and logic bugs being discovered in the kernel makes any comparatively difficult to exploit Spectre vulnerabilities of limited concern.
 
 If strong security against transient execution attacks is needed, critical applications can achieve much higher guarantees of isolation by running on dedicated hardware because transient execution attacks only work if the attacker and victim are sharing the same physical machine.

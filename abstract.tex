@@ -13,7 +13,7 @@ Submitted to the Department of Electrical Engineering and Computer Science on Ja
 ABSTRACT \\
 
 This thesis makes two contributions:
-(1) it measures the performance evolution of mitigations against transient execution side channel attacks over generations of processors, and (2) introduces the \sys kernel design, which eliminates as much as half the overhead on older processors.
+(1) a measurement study of the performance evolution of mitigations against transient execution attacks over generations of processors, and (2) introduces the \sys kernel design, which eliminates as much as half the overhead on older processors.
 
 The measurement study maps end-to-end overheads to the specific mitigations that cause them.
 It reveals that hardware fixes for several transient execution attacks have reduced overheads on OS heavy workloads by a factor of ten.
@@ -23,8 +23,8 @@ Finally, the study shows that a few mitigations account for most performance cos
 % On workloads that stress the Linux kernel interface (which have received the most attention) there have been substantial improvements with slowdowns on the LEBench benchmark suite going from over 30\% to less than 3\%.
 % By contrast, the overhead for JavaScript applications running inside Firefox are impacted by an almost entirely different set of mitigations which haven't gotten better with newer processors.
 
-\sys is a novel operating system architecture that is resilient to transient execution attacks, yet avoids many of the expensive software mitigations that existing operating systems employ when running on pre-2018 processors.
-It leverages a new hardware/software contract termed the Unmapped Speculation Contract which describes limits on the speculative behavior of processors.
+\sys is a novel operating system architecture that is resilient to transient execution attacks, yet avoids expensive software mitigations that existing operating systems employ when running on pre-2018 processors.
+It leverages a new hardware/software contract termed the Unmapped Speculation Contract, which describes limits on the speculative behavior of processors.
 
 ~\\[\baselineskip]
 
