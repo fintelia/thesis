@@ -12,17 +12,19 @@ Submitted to the Department of Electrical Engineering and Computer Science on Ja
 \noindent
 ABSTRACT \\
 
-This thesis measures the performance evolution of mitigations against transient execution side channel attacks over several generations of processors, and introduces the \sys kernel design which eliminates as much as half the overhead on older processors.
+This these makes two contributions:
+(1) it measures the performance evolution of mitigations against transient execution side channel attacks over several generations of processors, and (2) introduces the \sys kernel design, which eliminates as much as half the overhead on older processors.
 
-A measurement study that maps end-to-end overheads to the specific mitigations that cause them reveals that hardware fixes for several transient execution attacks have reduced overheads on OS heavy workloads by a factor of ten.
-However, overheads for JavaScript applications have remained roughly flat because they are caused by mitigations for attacks which even the most recent processors are still vulnerable to.
+The measurement study maps end-to-end overheads to the specific mitigations that cause them.
+It reveals that hardware fixes for several transient execution attacks have reduced overheads on OS heavy workloads by a factor of ten.
+However, overheads for JavaScript applications have remained roughly flat because they are caused by mitigations for attacks that even the most recent processors are still vulnerable to.
 Finally, the study shows that a few mitigations account for most performance costs.
 
 % On workloads that stress the Linux kernel interface (which have received the most attention) there have been substantial improvements with slowdowns on the LEBench benchmark suite going from over 30\% to less than 3\%.
 % By contrast, the overhead for JavaScript applications running inside Firefox are impacted by an almost entirely different set of mitigations which haven't gotten better with newer processors.
 
-\sys is a novel operating system architecture which is resilient to transient execution attacks, yet avoids many of the expensive software mitigations that existing operating systems employ when running on pre-2018 processors. 
-On suitable workloads it incurs roughly half the overhead of conventional operating system designs.
+\sys is a novel operating system architecture that is resilient to transient execution attacks, yet avoids many of the expensive software mitigations that existing operating systems employ when running on pre-2018 processors.
+It leverages a new hardware/software contract termed the Unmapped Speculation Contract, which describes baseline limits on the speculative behavior of processors.
 
 ~\\[\baselineskip]
 

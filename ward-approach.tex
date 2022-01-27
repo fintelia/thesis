@@ -25,27 +25,16 @@
 % Fourth, the adversary observes these side effects (e.g., using timing
 % measurements), which allows the adversary to infer the sensitive data.
 
-OS kernels make a particularly good target for transient execution attacks.
-First, an adversary can cause the kernel to speculatively execute code that
-leads to leakage of sensitive data. Even though the adversary cannot
-inject their own code to execute in the kernel, the adversary can often
-have significant influence on what existing kernel code gets executed in
-speculative execution, by specifying particular system call arguments or
-setting up micro-architectural CPU state such as the branch predictor.
-Secondly, an OS kernel has access to all of the state
-on the computer. This means that an adversary running in one process
-can trick the kernel into leaking state from any other process on the
-same computer.
 
-Current OS kernel designs, such as Linux, have two approaches for
-mitigating transient execution attacks.  The first approach is to make
-sure that the CPU does not speculatively execute any code that could
-end up accessing sensitive data.  This approach includes techniques like
-retpolines and other speculation barriers.  The second approach is to
-make sure that sensitive data is flushed from microarchitectural state,
-such as flushing CPU caches and buffers when returning from a system
-call or when context-switching between processes.  Both incur significant
-performance overheads.
+% Current OS kernel designs, such as Linux, have two approaches for
+% mitigating transient execution attacks.  The first approach is to make
+% sure that the CPU does not speculatively execute any code that could
+% end up accessing sensitive data.  This approach includes techniques like
+% retpolines and other speculation barriers.  The second approach is to
+% make sure that sensitive data is flushed from microarchitectural state,
+% such as flushing CPU caches and buffers when returning from a system
+% call or when context-switching between processes.  Both incur significant
+% performance overheads.
 
 \sys's goal is to reduce the performance cost of mitigations for transient
 execution attacks.  In principle, \sys's techniques can reduce not only
