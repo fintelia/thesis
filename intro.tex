@@ -141,9 +141,10 @@ Such processors will remain in use for years to come and cannot simply be ignore
 %\sys is an operating system architecture designed for such processors.
 %It achieves similar security guarantees to traditional OSes equiped with software mitigations but incurs substantially lower overhead.
 \sys is a novel operating system architecture that is resilient to transient execution attacks, yet avoids much of the overhead caused by software mitigations when running on these processors.
-It is based on the Unmapped Speculation Contract, which describes limits on a processor's speculative behavior.
+It is based on the Unmapped Speculation Contract, which describes limits on a processor's speculative behavior: namely that physical memory not mapped into a current or previous page table cannot impact microarchitectural state.
 
-In \sys, the operating system kernel is divided into multiple domains.
+%In \sys, the operating system kernel is divided into multiple domains.
+\sys leverages the \contract by dividing the kernel into multiple domains.
 The K domain includes all information accessible to the operation system, while each process has its own associated Q domain consisting only of the userspace memory and kernel space data structures related to that one process.
 At any given point in time the processor is either executing in userspace, in a Q domain, or in the K domain. 
 
