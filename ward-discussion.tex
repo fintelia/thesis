@@ -55,7 +55,7 @@ page-fault handler to call this function when it encounters a page
 fault while running with the Q page table. This allows the Linux kernel
 to run as normally with a transparent world switch on each system call.
 We refactored the \texttt{struct task\_struct} into a Q-private and secret
-part, allowing the \texttt{gettid} system call to run completely in the
+part, allowing the \texttt{gettid} system call to run entirely in the
 Q domain.  This gives us some indication that the basic approach of \sys
 could be made to work in Linux, although an open question is how to best
-re-design the data structures in the Linux kernel to fit \sys's design.
+re-design Linux's data structures to fit \sys's design.

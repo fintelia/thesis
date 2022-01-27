@@ -23,7 +23,7 @@ When the CPU reaches a conditional branch instruction that it doesn't yet know w
 The prediction is based on prior executions of that same instructions and any other heuristics the processor may have.
 
 Usually the branch prediction is correct and the speculatively executed instructions can be committed.
-However, when the prediction is incorrect, the CPU rolls back the architecturally visible results of the instructions executed after the branch.
+When the prediction is incorrect, the CPU rolls back the architecturally visible results of the instructions executed after the branch.
 However, in general when reverting transiently executed instructions, their microarchitural effects---like inserting or evicting lines from the cache---are not undone.
 Observing the  microarchitural effects of speculatively executed instructions enables transient execution attacks.
 
@@ -127,7 +127,7 @@ Our experiments show some variations between processors in how long individual m
 Mitigations are important for OS kernels because they make a particularly good target for transient execution attacks.
 First, an adversary can cause the kernel to speculatively execute code that
 leads to leakage of sensitive data. Even though the adversary cannot
-inject their own code to execute in the kernel, the adversary can often
+inject their own code to execute in the kernel, they can often
 have significant influence on what existing kernel code gets executed in
 speculative execution, by specifying particular system call arguments or
 setting up micro-architectural CPU state such as the branch predictor.

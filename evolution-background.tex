@@ -113,7 +113,7 @@ There is no single mitigation for Spectre V2.
 It is commonly mitigated by replacing every indirect branch with a retpoline sequence \cite{intel:retpoline} that halts further speculative execution, plus additional kernel logic to flush the BTB on context switches to protect user processes from one another.
 
 \paragraph{Speculative Store Bypass~\cite{horn:speculative-store-bypass}}
-This attack---also known as Spectre V4---exploits store-to-load forwarding in modern processors to learn the contents of recently written memory locations.
+This attack---originally known as Spectre V4---exploits store-to-load forwarding in modern processors to learn the contents of recently written memory locations.
 The only available mitigation is a processor mode called Speculative Store Bypass Disable (SSBD), but enabling it has severe negative performance impacts.
 Given the difficulty of exploiting Speculative Store Bypass and the considerable cost of mitigating it, by default SSBD is only used by Linux for processes that specifically opt in to it via \texttt{prctl} or \texttt{seccomp}.
 
